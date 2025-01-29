@@ -1,4 +1,5 @@
 const Blog = require("../models/blogSchema");
+const Comment = require("../models/commentSchema");
 const User = require("../models/userSchema");
 const mongoose = require("mongoose");
 
@@ -8,6 +9,12 @@ async function getAllBlogs(req, res) {
         const publicBlogs = await Blog.find({ draft: false }).populate({
             path: "creator",
             select: "-password",
+        }).populate({
+            path: "likes",
+            select: "name email"
+        }).populate({
+            path: "comments",
+            select: "comment user"
         });
         return res.status(200).json({ success: true, blogs: publicBlogs });
     } catch (error) {
@@ -26,7 +33,13 @@ async function getBlogByID(req, res) {
         const blog = await Blog.findById(id).populate({
             path: "creator",
             select: "-password",
-        });
+        }).populate({
+            path: "likes",
+            select: "name email"
+        }).populate({
+            path: "comments",
+            select: "comment user"
+        });;
 
         if (!blog) {
             return res.status(404).json({ success: false, message: "Blog not found" });
@@ -97,7 +110,6 @@ async function updateBlog(req, res) {
 }
 
 async function deleteBlog(req, res) {
-
     try {
         const creator = req.user;
         const { id } = req.params;
@@ -131,4 +143,40 @@ async function deleteBlog(req, res) {
     }
 }
 
-module.exports = { getAllBlogs, getBlogByID, addBlog, updateBlog, deleteBlog };
+async function likeBlog(req, res) {
+
+    try {
+        const creator = req.user;
+        const { id } = req.params;
+
+        const blog = await Blog.findById(id);
+
+        if (!blog) {
+            return res.status(500).json({
+                message: "Blog is not found"
+            })
+        }
+
+        if (!blog.likes.includes(creator)) {
+            await Blog.findByIdAndUpdate(id, { $push: { likes: creator } })
+            return res.status(200).json({
+                success: true,
+                message: "Blog Liked Successfully",
+            });
+        } else {
+            await Blog.findByIdAndUpdate(id, { $pull: { likes: creator } })
+            return res.status(200).json({
+                success: true,
+                message: "Blog DisLiked Successfully",
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
+
+
+module.exports = { getAllBlogs, getBlogByID, addBlog, updateBlog, deleteBlog, likeBlog };

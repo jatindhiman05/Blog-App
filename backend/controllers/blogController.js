@@ -1,7 +1,10 @@
 const Blog = require("../models/blogSchema");
 const Comment = require("../models/commentSchema");
 const User = require("../models/userSchema");
+const path = require('path');
 const mongoose = require("mongoose");
+const { uploadImage, deleteImagefromCloudinary } = require("../utils/uploadImage");
+const fs = require('fs');
 
 // Get all public blogs
 async function getAllBlogs(req, res) {
@@ -51,11 +54,13 @@ async function getBlogByID(req, res) {
     }
 }
 
-// Add a new blog
 async function addBlog(req, res) {
     try {
         const creator = req.user;
         const { title, description, draft } = req.body;
+        const image = req.file;
+
+        console.log({ title, description, draft, image });
 
         if (!description) {
             return res.status(400).json({ success: false, message: "Description is required" });
@@ -66,15 +71,29 @@ async function addBlog(req, res) {
             return res.status(404).json({ success: false, message: "User does not exist" });
         }
 
-        const newBlog = await Blog.create({ title, description, draft, creator });
+        // cloudinary
+
+        const { secure_url, public_id } = await uploadImage(image.path)
+        fs.unlinkSync(image.path)
+
+        const newBlog = await Blog.create({
+            title, description, draft, creator, image: secure_url, imageId: public_id
+        });
+
         user.blogs.push(newBlog._id);
         await user.save();
 
-        return res.status(201).json({ success: true, message: "Blog created successfully", blog: newBlog });
+        return res.status(201).json({
+            success: true,
+            message: "Blog created successfully",
+            blog: newBlog,
+        });
     } catch (error) {
+        console.error(error);
         return res.status(500).json({ success: false, message: "Error creating blog", error: error.message });
     }
 }
+
 
 // Update a blog
 async function updateBlog(req, res) {
@@ -128,12 +147,13 @@ async function deleteBlog(req, res) {
             })
         }
 
+        await deleteImagefromCloudinary(blog.imageId)
+
         await Blog.findByIdAndDelete(id);
         await User.findByIdAndUpdate(creator, { $pull: { blogs: id } })
         return res.status(200).json({
             success: true,
-            message: "Blog Updated Successfully",
-            blog,
+            message: "Blog Deleted Successfully",
         });
     } catch (error) {
         return res.status(500).json({

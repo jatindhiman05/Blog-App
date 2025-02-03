@@ -32,9 +32,8 @@ async function createUser(req, res) {
             user: {
                 name: newUser.name,
                 email: newUser.email,
-                blogs: newUser.blogs,
-                token,
             },
+            token,
         });
     } catch (error) {
         return res.status(500).json({
@@ -71,7 +70,7 @@ async function login(req, res) {
             id: exists._id,
         })
 
-        return res.status(200).json({ success: true, message: "Logged in Successfully", user: exists,token });
+        return res.status(200).json({ success: true, message: "Logged in Successfully", user: {name :exists.name, email : exists.email},token });
     } catch (error) {
         return res.status(500).json({
             success: false,

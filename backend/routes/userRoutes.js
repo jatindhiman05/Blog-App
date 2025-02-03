@@ -3,8 +3,8 @@ const { createUser, getAllUsers, getUserById, updateuser, deleteUser, login } = 
 const route = express.Router();
 
 
-route.post('/users', createUser);
-route.post('/login', login);
+route.post('/signup', createUser);
+route.post('/signin', login);
 route.get('/users',getAllUsers);
 
 route.get('/users/:id', getUserById);

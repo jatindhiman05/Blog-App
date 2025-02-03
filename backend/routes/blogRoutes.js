@@ -7,11 +7,11 @@ const route = express.Router();
 
 route.get('/blogs',getAllBlogs);
 
-route.get('/blogs/:id', getBlogByID);
+route.get('/blogs/:blogId', getBlogByID);
 
 route.post('/blogs', verifyUser, upload.single("image"), addBlog);
 
-route.patch('/blogs/:id', verifyUser, updateBlog);
+route.patch('/blogs/:id', verifyUser, upload.single("image"), updateBlog);
 route.delete('/blogs/:id',verifyUser,deleteBlog);
 
 route.post('/blogs/like/:id', verifyUser, likeBlog);

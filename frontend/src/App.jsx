@@ -1,39 +1,24 @@
 import React from 'react'
-import {createBrowserRouter,RouterProvider} from 'react-router-dom'
-import Blogs from './components/Blogs'
-import SignUp from './pages/SignUp'
-import SignIn from './pages/SignIn'
-import CreateBlogs from './components/CreateBlogs'
-
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element : <Blogs/>
-  },
-  {
-    path: '/signup',
-    element : <SignUp/>
-  },
-  {
-    path: '/signin',
-    element : <SignIn/>
-  },
-  {
-    path: '/create-blog',
-    element : <CreateBlogs/>
-  },
-  {
-    path: '*',
-    element: <h1>Page Not Found</h1>
-  },
-])
+import { Route, Routes } from 'react-router-dom'
+import AuthForm from './pages/AuthForm'
+import Navbar from './components/Navbar'
+import HomePage from './components/HomePage'
+import AddBlog from './pages/AddBlog'
+import BlogPage from './pages/BlogPage'
 
 const App = () => {
-  return (
-    <RouterProvider router={router}>
+  return <Routes>
+    <Route path='/' element={<Navbar />}> 
+      <Route path='/' element={<HomePage/>} ></Route>   
+      <Route path='/blog/:id' element={<BlogPage />}></Route>
 
-    </RouterProvider>
-  )
+    </Route>
+    <Route path='/signin' element={<AuthForm type={"signin"} />} ></Route>
+    <Route path='/signup' element={<AuthForm type={"signup"} />}></Route>
+    <Route path='/add-blog' element={<AddBlog/>}></Route>
+    <Route path='/edit/:id' element={<AddBlog />}></Route>
+
+  </Routes>
 }
 
 export default App

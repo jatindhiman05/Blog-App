@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load environment variables
+require('dotenv').config();
 const cloudinary = require('cloudinary').v2;
 
 async function cloudinaryConfig() {

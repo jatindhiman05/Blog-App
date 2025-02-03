@@ -3,6 +3,9 @@ const Comment = require("../models/commentSchema");
 const User = require("../models/userSchema");
 const path = require('path');
 const mongoose = require("mongoose");
+const ShortUniqueId = require('short-unique-id')
+const { randomUUID } = new ShortUniqueId({ length: 10 });
+
 const { uploadImage, deleteImagefromCloudinary } = require("../utils/uploadImage");
 const fs = require('fs');
 
@@ -27,13 +30,10 @@ async function getAllBlogs(req, res) {
 
 // Get a blog by ID
 async function getBlogByID(req, res) {
-    const { id } = req.params;
-    try {
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid blog ID" });
-        }
+    const { blogId } = req.params;
 
-        const blog = await Blog.findById(id).populate({
+    try {
+        const blog = await Blog.findOne({blogId}).populate({
             path: "creator",
             select: "-password",
         }).populate({
@@ -42,7 +42,9 @@ async function getBlogByID(req, res) {
         }).populate({
             path: "comments",
             select: "comment user"
-        });;
+        });
+
+        console.log(blog)
 
         if (!blog) {
             return res.status(404).json({ success: false, message: "Blog not found" });
@@ -76,8 +78,10 @@ async function addBlog(req, res) {
         const { secure_url, public_id } = await uploadImage(image.path)
         fs.unlinkSync(image.path)
 
+        const blogId = title.toLowerCase().split(" ").join('-') + "-" + randomUUID();
+
         const newBlog = await Blog.create({
-            title, description, draft, creator, image: secure_url, imageId: public_id
+            title, description, draft, creator, image: secure_url, imageId: public_id, blogId
         });
 
         user.blogs.push(newBlog._id);
@@ -99,34 +103,53 @@ async function addBlog(req, res) {
 async function updateBlog(req, res) {
     try {
         const creator = req.user;
+        const image = req.file;
         const { id } = req.params;
-        const { title, description, draft } = req.body;
+        const { title, description,draft } = req.body;
 
-        const blog = await Blog.findOneAndUpdate(
-            { _id: id, creator },
-            { title, description, draft },
-            { new: true }
-        );
+
+        const blog = await Blog.findOne({ blogId: id });
 
         if (!blog) {
-            return res.status(403).json({
-                success: false,
-                message: "You are not authorized for this action or blog not found",
+            return res.status(500).json({
+                message: "Blog is not found",
             });
         }
 
+        if (creator != blog.creator) {
+            return res.status(500).json({
+                message: "You are not authorized for this action",
+            });
+        }
+
+        if (image) {
+            await deleteImagefromCloudinary(blog.imageId)
+            const { secure_url, public_id } = await uploadImage(image.path)
+            blog.image = secure_url
+            blog.imageId = public_id
+            fs.unlinkSync(image.path)
+        }
+
+        blog.title = title || blog.title;
+        blog.description = description || blog.description;
+        blog.draft = draft || blog.draft;
+
+
+        await blog.save();
+
         return res.status(200).json({
             success: true,
-            message: "Blog Updated Successfully",
+            message: "Blog updated successfully",
             blog,
         });
     } catch (error) {
+        console.log(error);
         return res.status(500).json({
-            success: false,
             message: error.message,
         });
     }
 }
+
 
 async function deleteBlog(req, res) {
     try {

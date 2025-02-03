@@ -10,11 +10,16 @@ const blogSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    image : {
-        type : String,
-        required : true,
+    blogId: {
+        type: String,
+        required: true,
+        unique: true
     },
-    imageId:{
+    image: {
+        type: String,
+        required: true,
+    },
+    imageId: {
         type: String,
         required: true,
     },
@@ -22,15 +27,15 @@ const blogSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    creator : {
-        type : mongoose.Schema.Types.ObjectId,
-        ref : "User",
-        required : true
+    creator: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
     },
-    likes : [
+    likes: [
         {
-            type : mongoose.Schema.Types.ObjectId,
-            ref : "User"
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
         }
     ],
     comments: [

@@ -29,7 +29,7 @@ function DisplayBlogs({ blogs }) {
                                     <img
                                         src={blog.image}
                                         alt={blog.title}
-                                        className="w-full h-48 object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
+                                        className="w-full h-48 object-cover rounded-xl"
                                     />
                                 </div>
                             )}

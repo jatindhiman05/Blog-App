@@ -133,7 +133,7 @@ async function createUser(req, res) {
 
         return res.status(200).json({
             success: true,
-            message: "Please Check Your Email to verify your account",
+            message: "Email Sent! Please verify it to continue...",
         });
     } catch (err) {
         return res.status(500).json({

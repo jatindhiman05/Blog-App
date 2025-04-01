@@ -138,14 +138,14 @@ function AuthForm({ type }) {
                         <span className="bg-white px-2">or</span>
                     </div>
                 </div>
-
+{/* 
                 <button
                     onClick={handleGoogleAuth}
                     className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors duration-200 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                     <img src={googleIcon} alt="Google" className="w-5 h-5" />
                     Continue with Google
-                </button>
+                </button> */}
 
                 <p className="mt-6 text-center text-sm text-gray-600">
                     {type === "signin" ? (

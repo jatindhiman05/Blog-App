@@ -1,73 +1,135 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Target, Globe2 } from "lucide-react";
+import { useSelector } from "react-redux";
+import { Target, Globe2, BookOpen, Code2, Users, Rocket, ArrowRight, ArrowLeft } from "lucide-react";
 
 function AboutPage() {
+    const { token } = useSelector((state) => state.user);
+
     return (
-        <div className="bg-gray-50 min-h-screen py-16 px-4">
-            <div className="max-w-5xl mx-auto">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 px-4 sm:px-6">
+            <div className="max-w-4xl mx-auto">
+                {/* Back button */}
+                <button
+                    onClick={() => window.history.back()}
+                    className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 mb-8"
+                >
+                    <ArrowLeft className="w-5 h-5" />
+                    <span>Back</span>
+                </button>
+
                 {/* Hero Section */}
-                <section className="text-center mb-16">
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-                        About Me
+                <section className="text-center mb-12">
+                    <div className="relative inline-block mb-8">
+                        <div className="absolute -inset-4 bg-indigo-100 rounded-full opacity-75 blur-lg"></div>
+                        <div className="relative bg-white rounded-full p-2 shadow-sm">
+                            <img
+                                src="https://res.cloudinary.com/df19wbn0d/image/upload/w_1000,c_fill,ar_1:1,g_auto,r_max,bo_5px_solid_red,b_rgb:262c35/v1743484881/WhatsApp_Image_2025-01-18_at_23.23.17_bc50be96_shaq4m.jpg"
+                                alt="Jatin Dhiman"
+                                className="w-32 h-32 rounded-full object-cover border-4 border-white"
+                            />
+                        </div>
+                    </div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                        Hi, I'm Jatin Dhiman
                     </h1>
-                    <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                        Sharing knowledge and stories that inspire developers to build better web experiences.
+                    <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                        Full-stack developer passionate about creating exceptional web experiences and sharing knowledge with the community.
                     </p>
                 </section>
 
                 {/* Mission Section */}
-                <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 mb-16">
-                    <div className="flex flex-col md:flex-row items-center gap-8">
+                <section className="bg-white rounded-xl shadow-sm p-8 mb-12">
+                    <div className="flex flex-col lg:flex-row items-center gap-8">
                         <div className="flex-1">
-                            <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                <Target className="text-blue-600" /> My Mission
+                            <div className="inline-flex items-center gap-3 bg-indigo-50 px-4 py-2 rounded-full mb-6">
+                                <Target className="w-5 h-5 text-indigo-600" />
+                                <span className="text-sm font-medium text-indigo-600">MY MISSION</span>
+                            </div>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                                Empowering developers through knowledge sharing
                             </h2>
-                            <p className="text-gray-600 leading-relaxed">
-                                My mission is to empower web developers through high-quality content, tutorials, and personal stories from the tech community. I believe in continuous learning and sharing knowledge to grow together.
+                            <p className="text-gray-600 leading-relaxed mb-6"> I believe in the power of community-driven learning. Its goal is to create content that bridges the gap between theory and practical implementation, helping developers at all levels grow their skills.
+
                             </p>
+                            <div className="flex flex-wrap gap-3">
+                                <Link
+                                    to="/contact"
+                                    className="flex items-center gap-2 bg-white border border-gray-200 hover:border-indigo-300 text-gray-700 hover:text-indigo-600 px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
+                                >
+                                    <Users className="w-5 h-5" />
+                                    My Portfolio
+                                </Link>
+                            </div>
                         </div>
                         <div className="flex-1">
                             <img
-                                src="https://images.unsplash.com/photo-1581090700227-1e37b190418e?auto=format&fit=crop&w=800&q=60"
-                                alt="Mission Illustration"
-                                className="rounded-xl shadow-md w-full object-cover h-64"
+                                src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=60"
+                                alt="Coding illustration"
+                                className="rounded-lg shadow-sm w-full h-auto object-cover"
                             />
                         </div>
                     </div>
                 </section>
 
-                {/* About Me Section */}
-                <section className="mb-16 text-center">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-8">About Me</h2>
-                    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 inline-block">
-                        <img
-                            src="https://res.cloudinary.com/df19wbn0d/image/upload/w_1000,c_fill,ar_1:1,g_auto,r_max,bo_5px_solid_red,b_rgb:262c35/v1743484881/WhatsApp_Image_2025-01-18_at_23.23.17_bc50be96_shaq4m.jpg"
-                            alt="My Photo"
-                            className="w-24 h-24 mx-auto rounded-full object-cover mb-4"
-                        />
-                        <h3 className="text-lg font-semibold text-gray-800">Jatin Dhiman</h3>
-                        <p className="text-gray-500 text-sm mb-2">Developer</p>
-                        <p className="text-gray-600 text-sm">
-                            Passionate about building modern web applications and sharing knowledge with the developer community.
-                        </p>
+                {/* Values Section */}
+                <section className="mb-12">
+                    <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">My Core Values</h2>
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                            <div className="w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center mb-4">
+                                <Code2 className="w-5 h-5 text-indigo-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Technical Excellence</h3>
+                            <p className="text-gray-600 text-sm">
+                                Committed to staying at the forefront of web technologies and sharing practical, up-to-date knowledge.
+                            </p>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                            <div className="w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center mb-4">
+                                <BookOpen className="w-5 h-5 text-indigo-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Continuous Learning</h3>
+                            <p className="text-gray-600 text-sm">
+                                Believing that growth comes from both teaching and being open to learning from others.
+                            </p>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                            <div className="w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center mb-4">
+                                <Users className="w-5 h-5 text-indigo-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Community First</h3>
+                            <p className="text-gray-600 text-sm">
+                                Building an inclusive space where developers can connect, share, and grow together.
+                            </p>
+                        </div>
                     </div>
                 </section>
 
-                {/* Footer CTA */}
-                <section className="text-center mt-20">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex justify-center items-center gap-2">
-                        <Globe2 className="text-blue-600" /> Join My Community
-                    </h2>
-                    <p className="text-gray-600 mb-8 max-w-xl mx-auto">
-                        Whether you're here to learn, share, or connect, I welcome you to be part of my growing community.
-                    </p>
-                    <Link
-                        to="/signup"
-                        className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full transition duration-300"
-                    >
-                        Get Started
-                    </Link>
+                {/* CTA Section */}
+                <section className="text-center">
+                    <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-xl shadow-sm p-8 text-white">
+                        <h2 className="text-2xl font-bold mb-4">Ready to join the community?</h2>
+                        <p className="text-indigo-100 mb-6 max-w-2xl mx-auto">
+                            Whether you're here to learn, share, or connect, I welcome you to be part of this growing network of developers.
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-3">
+                            <Link
+                                to={token ? "/add-blog" : "/signin"}
+                                className="flex items-center gap-2 bg-white text-indigo-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-medium shadow-md"
+                            >
+                                <Globe2 className="w-5 h-5" />
+                                Get Started
+                            </Link>
+                            <Link
+                                to="/"
+                                className="flex items-center gap-2 bg-transparent border border-white text-white hover:bg-white hover:bg-opacity-10 px-6 py-3 rounded-lg font-medium"
+                            >
+                                <BookOpen className="w-5 h-5" />
+                                Browse
+                            </Link>
+                        </div>
+                    </div>
                 </section>
             </div>
         </div>

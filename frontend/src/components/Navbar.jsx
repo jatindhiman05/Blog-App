@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import logo from "../../public/logo.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../utils/userSilce";
 import {
     Search,
-    PencilLine,
-    UserCircle2,
+    PenSquare,
+    User,
     Settings,
     LogOut,
+    Menu,
+    X,
+    ChevronDown,
+    Loader2
 } from "lucide-react";
 
 const Navbar = () => {
@@ -17,47 +20,197 @@ const Navbar = () => {
     );
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const popupRef = useRef(null);
 
     const [showPopup, setShowPopup] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [showSearchBar, setShowSearchBar] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const handleLogout = () => {
-        dispatch(logout());
-        setShowPopup(false);
+        setIsLoggingOut(true);
+        setTimeout(() => {
+            dispatch(logout());
+            setShowPopup(false);
+            setMobileMenuOpen(false);
+            setIsLoggingOut(false);
+            window.location.reload();
+        }, 1000);
     };
 
     useEffect(() => {
         if (window.location.pathname !== "/search") {
             setSearchQuery("");
         }
+    }, [window.location.pathname]);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (popupRef.current && !popupRef.current.contains(event.target)) {
+                const profileButton = document.querySelector('.profile-button');
+                if (!profileButton || !profileButton.contains(event.target)) {
+                    setShowPopup(false);
+                }
+            }
+        }
+
+        if (showPopup) {
+            document.addEventListener('mousedown', handleClickOutside);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
 
         return () => {
-            if (window.location.pathname !== "/") {
-                setShowPopup(false);
-            }
+            document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [window.location.pathname]);
+    }, [showPopup]);
 
     return (
         <>
-            <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 transition-all">
-                <div className="max-w-7xl mx-auto px-4 sm:px-8 flex justify-between items-center h-[70px]">
-                    {/* Logo and Search */}
-                    <div className="flex items-center gap-4 w-full sm:w-auto">
-                        <Link to="/" className="flex items-center gap-2">
-                            <img src={logo} alt="logo" className="h-8 w-auto" />
-                            <span className="text-xl font-bold text-indigo-600">Blogify</span>
+            <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+                    {/* Left section - Logo + Search */}
+                    <div className="flex items-center gap-4">
+                        <Link to="/" className="flex items-center gap-2 group">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 flex items-center justify-center text-white font-bold shadow-sm">
+                                JD
+                            </div>
+                            <span className="hidden sm:block text-lg font-semibold text-gray-900">
+                                Journal
+                            </span>
                         </Link>
 
                         {/* Desktop Search */}
-                        <div
-                            className={`relative transition-all duration-300 ease-in-out max-sm:absolute max-sm:top-16 max-sm:w-full ${showSearchBar ? "max-sm:block" : "max-sm:hidden"} sm:block`}
-                        >
-                            <Search
-                                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                                size={18}
+                        <div className="hidden md:block relative w-72">
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <Search className="h-4 w-4 text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search articles..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && searchQuery.trim()) {
+                                        navigate(`/search?q=${searchQuery.trim()}`);
+                                        setSearchQuery("");
+                                    }
+                                }}
+                                className="w-full bg-gray-50 text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500 focus:outline-none rounded-lg pl-10 pr-4 py-2 placeholder:text-gray-400 border border-gray-300 hover:border-indigo-300 transition-all"
                             />
+                        </div>
+                    </div>
+
+                    {/* Mobile menu buttons */}
+                    <div className="flex md:hidden items-center gap-4">
+                        <button
+                            onClick={() => setShowSearchBar(!showSearchBar)}
+                            className="text-gray-600 hover:text-indigo-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                            <Search size={20} />
+                        </button>
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="text-gray-600 hover:text-indigo-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
+                    </div>
+
+                    {/* Desktop Navigation and Auth Buttons */}
+                    <div className="hidden md:flex items-center gap-3">
+                        {token ? (
+                            <>
+                                <Link
+                                    to="/add-blog"
+                                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-medium rounded-lg transition-all shadow-sm"
+                                >
+                                    <PenSquare size={16} />
+                                    <span>Write</span>
+                                </Link>
+
+                                <div className="relative ml-2" ref={popupRef}>
+                                    <button
+                                        onClick={() => setShowPopup(!showPopup)}
+                                        className="flex items-center gap-1 focus:outline-none group profile-button"
+                                    >
+                                        <img
+                                            src={
+                                                profilePic ||
+                                                `https://api.dicebear.com/7.x/initials/svg?seed=${name}&background=indigo`
+                                            }
+                                            alt={name}
+                                            className="w-8 h-8 rounded-full object-cover border border-gray-200 group-hover:border-indigo-400 cursor-pointer transition-all"
+                                        />
+                                        <ChevronDown
+                                            size={16}
+                                            className={`text-gray-500 transition-transform ${showPopup ? 'rotate-180' : ''}`}
+                                        />
+                                    </button>
+
+                                    {showPopup && (
+                                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden z-50">
+                                            <div className="px-4 py-3 border-b border-gray-200">
+                                                <p className="text-sm font-medium text-gray-900">{name}</p>
+                                                <p className="text-xs text-gray-500">@{username}</p>
+                                            </div>
+                                            <Link
+                                                to={`/@${username}`}
+                                                className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700 text-sm transition-colors"
+                                                onClick={() => setShowPopup(false)}
+                                            >
+                                                <User size={16} className="text-indigo-500" />
+                                                <span>Profile</span>
+                                            </Link>
+                                            <Link
+                                                to="/setting"
+                                                className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700 text-sm transition-colors"
+                                                onClick={() => setShowPopup(false)}
+                                            >
+                                                <Settings size={16} className="text-indigo-500" />
+                                                <span>Settings</span>
+                                            </Link>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 text-sm transition-colors border-t border-gray-200"
+                                                disabled={isLoggingOut}
+                                            >
+                                                {isLoggingOut ? (
+                                                    <Loader2 size={16} className="animate-spin text-red-500" />
+                                                ) : (
+                                                    <LogOut size={16} className="text-red-500" />
+                                                )}
+                                                <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex gap-2">
+                                <Link to="/signin">
+                                    <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg transition-colors">
+                                        Sign In
+                                    </button>
+                                </Link>
+                                <Link to="/signup">
+                                    <button className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors">
+                                        Sign Up
+                                    </button>
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Mobile search bar */}
+                {showSearchBar && (
+                    <div className="md:hidden px-4 py-3 bg-white border-t border-gray-200">
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <Search className="h-4 w-4 text-gray-400" />
+                            </div>
                             <input
                                 type="text"
                                 placeholder="Search articles..."
@@ -70,99 +223,86 @@ const Navbar = () => {
                                         setShowSearchBar(false);
                                     }
                                 }}
-                                className="w-full sm:w-80 bg-white/60 backdrop-blur-sm text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none rounded-full pl-10 pr-4 py-2 placeholder:text-slate-400 shadow-inner"
+                                className="w-full bg-gray-50 text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500 focus:outline-none rounded-lg pl-10 pr-4 py-2 placeholder:text-gray-400 border border-gray-300"
+                                autoFocus
                             />
                         </div>
                     </div>
+                )}
 
-                    {/* Right Actions */}
-                    <div className="flex items-center gap-4">
-                        {/* Mobile Search Toggle */}
-                        <button
-                            onClick={() => setShowSearchBar((prev) => !prev)}
-                            className="sm:hidden text-slate-500 hover:text-slate-700 transition"
-                        >
-                            <Search size={24} />
-                        </button>
-
-                        {/* Write Blog */}
-                        {token && (
-                            <Link to="/add-blog">
-                                <button className="flex items-center gap-2 text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 px-5 py-2 text-sm font-medium rounded-full shadow-md hover:shadow-lg active:scale-95 transition-all duration-300">
-                                    <PencilLine size={18} />
-                                    <span className="hidden sm:inline">Write</span>
-                                </button>
-                            </Link>
-                        )}
-
-                        {/* Profile / Auth */}
-                        {token ? (
-                            <div className="relative">
-                                <img
-                                    src={
-                                        profilePic ||
-                                        `https://api.dicebear.com/9.x/initials/svg?seed=${name}`
-                                    }
-                                    alt={name}
-                                    onClick={() => setShowPopup((prev) => !prev)}
-                                    className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-300 hover:ring-indigo-500 cursor-pointer transition-all"
-                                />
-
-                                {showPopup && (
-                                    <div
-                                        onMouseLeave={() => setShowPopup(false)}
-                                        className="absolute right-0 mt-3 w-56 bg-white/90 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-40 overflow-hidden animate-fadeIn"
-                                    >
-                                        <Link
-                                            to={`/@${username}`}
-                                            className="flex items-center gap-2 px-5 py-3 hover:bg-slate-100 text-slate-700 transition-all"
-                                        >
-                                            <UserCircle2 size={18} />
-                                            <span>Profile</span>
-                                        </Link>
-                                        <Link
-                                            to={`/edit-profile`}
-                                            className="flex items-center gap-2 px-5 py-3 hover:bg-slate-100 text-slate-700 transition-all"
-                                        >
-                                            <Settings size={18} />
-                                            <span>Edit Profile</span>
-                                        </Link>
-                                        <Link
-                                            to={"/setting"}
-                                            className="flex items-center gap-2 px-5 py-3 hover:bg-slate-100 text-slate-700 transition-all"
-                                        >
-                                            <Settings size={18} />
-                                            <span>Settings</span>
-                                        </Link>
-                                        <button
-                                            onClick={handleLogout}
-                                            className="flex items-center w-full gap-2 px-5 py-3 text-red-600 hover:bg-red-50 active:scale-95 transition-all duration-300"
-                                        >
-                                            <LogOut size={18} />
-                                            <span>Logout</span>
-                                        </button>
+                {/* Mobile menu */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden bg-white border-t border-gray-200 shadow-sm">
+                        <div className="px-4 py-3 space-y-2">
+                            {token ? (
+                                <>
+                                    <div className="flex items-center gap-3 px-3 py-3 border-b border-gray-200 rounded-lg">
+                                        <img
+                                            src={
+                                                profilePic ||
+                                                `https://api.dicebear.com/7.x/initials/svg?seed=${name}&background=indigo`
+                                            }
+                                            alt={name}
+                                            className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                                        />
+                                        <div>
+                                            <p className="font-medium text-gray-900">{name}</p>
+                                            <p className="text-xs text-gray-500">@{username}</p>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="flex gap-2">
-                                <Link to="/signup">
-                                    <button className="flex items-center gap-2 text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 px-5 py-2 text-sm font-medium rounded-full shadow-md hover:shadow-lg active:scale-95 transition-all duration-300">
-                                        Sign Up
+                                    <Link
+                                        to="/add-blog"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-2.5 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors"
+                                    >
+                                        <PenSquare size={16} />
+                                        <span>Write Article</span>
+                                    </Link>
+                                    <Link
+                                        to="/settings"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-2.5 text-gray-700 rounded-lg hover:bg-gray-50"
+                                    >
+                                        <Settings size={16} className="text-indigo-500" />
+                                        <span>Settings</span>
+                                    </Link>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="flex items-center gap-3 w-full px-3 py-2.5 text-red-600 rounded-lg hover:bg-red-50 mt-2"
+                                        disabled={isLoggingOut}
+                                    >
+                                        {isLoggingOut ? (
+                                            <Loader2 size={16} className="animate-spin text-red-500" />
+                                        ) : (
+                                            <LogOut size={16} className="text-red-500" />
+                                        )}
+                                        <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
                                     </button>
-                                </Link>
-                                <Link to="/signin">
-                                    <button className="border border-slate-300 text-slate-700 hover:bg-slate-100 px-5 py-2 text-sm font-medium rounded-full shadow-sm hover:shadow-md active:scale-95 transition-all duration-300">
+                                </>
+                            ) : (
+                                <div className="space-y-2">
+                                    <Link
+                                        to="/signin"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block px-4 py-2.5 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg"
+                                    >
                                         Sign In
-                                    </button>
-                                </Link>
-                            </div>
-                        )}
+                                    </Link>
+                                    <Link
+                                        to="/signup"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block px-4 py-2.5 text-center text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm"
+                                    >
+                                        Sign Up
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
             </header>
 
-            <main className="pt-[70px] min-h-screen bg-slate-50">
+            <main className="pt-16 min-h-screen bg-gray-50">
                 <Outlet />
             </main>
         </>

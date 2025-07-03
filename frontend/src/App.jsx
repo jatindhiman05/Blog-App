@@ -15,9 +15,9 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Navbar />}>
-        <Route path="/" element={<HomePage />} />
         <Route path="/signin" element={<AuthForm type={"signin"} />} />
         <Route path="/signup" element={<AuthForm type={"signup"} />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/add-blog" element={<AddBlog />} />
         <Route path="/blog/:id" element={<BlogPage />} />
         <Route path="/edit/:id" element={<AddBlog />} />

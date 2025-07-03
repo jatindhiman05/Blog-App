@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { login } from "../utils/userSilce";
 import { Navigate, useNavigate } from "react-router-dom";
 import useLoader from "../hooks/useLoader";
+import { Camera, X, ArrowLeft, Check, User, AtSign, Pencil, Upload } from "lucide-react";
 
 function EditProfile() {
     const {
@@ -28,14 +29,14 @@ function EditProfile() {
         bio,
     });
 
-    const [initialData, setInitialData] = useState({
+    const [initialData] = useState({
         profilePic,
         username,
         name,
         bio,
     });
 
-    const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
     function handleChange(e) {
         const { value, name, files } = e.target;
@@ -52,7 +53,7 @@ function EditProfile() {
         const formData = new FormData();
         formData.append("name", userData.name);
         formData.append("username", userData.username);
-        if (userData.profilePic) {
+        if (userData.profilePic && typeof userData.profilePic !== "string") {
             formData.append("profilePic", userData.profilePic);
         }
         formData.append("bio", userData.bio);
@@ -70,125 +71,232 @@ function EditProfile() {
             );
             toast.success(res.data.message);
             dispatch(login({ ...res.data.user, token, email, id: userId }));
+            navigate(`/@${userData.username}`);
         } catch (error) {
-            toast.error(error.response.data.message);
+            toast.error(error.response?.data?.message || "Failed to update profile");
         } finally {
             stopLoading();
         }
     }
 
     useEffect(() => {
-        if (initialData) {
-            const isEqual = JSON.stringify(userData) === JSON.stringify(initialData);
-            setIsButtonDisabled(isEqual);
-        }
+        const hasChanged = Object.keys(userData).some(
+            (key) => JSON.stringify(userData[key]) !== JSON.stringify(initialData[key])
+        );
+        setIsButtonDisabled(!hasChanged);
     }, [userData, initialData]);
-    return token == null ? (
-        <Navigate to={"/signin"} />
-    ) : (
-        <div className="w-full p-5">
-            <div className=" w-full  md:w-[70%] lg:w-[55%] mx-auto my-10 lg:px-10">
-                <h1 className="text-center text-3xl font-medium my-4">Edit Profile</h1>
-                <div>
-                    <div className="">
-                        <h2 className="text-2xl font-semibold my-2">Photo</h2>
-                        <div className="flex items-center flex-col gap-3">
-                            <div className="w-[150px] h-[150px] cursor-pointer aspect-square rounded-full overflow-hidden">
-                                <label htmlFor="image" className=" ">
-                                    {userData?.profilePic ? (
-                                        <img
-                                            src={
-                                                typeof userData?.profilePic == "string"
-                                                    ? userData?.profilePic
-                                                    : URL.createObjectURL(userData?.profilePic)
-                                            }
-                                            alt=""
-                                            className="rounded-full w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className=" w-[150px] h-[150px] bg-white border-2 border-dashed rounded-full aspect-square  flex justify-center items-center text-xl">
-                                            Select Image
-                                        </div>
-                                    )}
-                                </label>
+
+    if (!token) {
+        return <Navigate to="/signin" />;
+    }
+
+    return (
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8 px-4 sm:px-6">
+            <div className="max-w-2xl mx-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="flex items-center gap-2 text-gray-600 hover:text-indigo-600"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                        <span className="font-medium">Back</span>
+                    </button>
+                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                        Edit Profile
+                    </h1>
+                    <div className="w-10"></div> {/* Spacer for alignment */}
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    {/* Profile Picture Section */}
+                    <div className="p-6 border-b border-gray-200">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <Camera className="text-indigo-600 w-5 h-5" />
+                            Profile Picture
+                        </h2>
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="relative group">
+                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100">
+                                    <label
+                                        htmlFor="profilePic"
+                                        className="cursor-pointer block w-full h-full"
+                                    >
+                                        {userData.profilePic ? (
+                                            <img
+                                                src={
+                                                    typeof userData.profilePic === "string"
+                                                        ? userData.profilePic
+                                                        : URL.createObjectURL(userData.profilePic)
+                                                }
+                                                alt="Profile"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                <User className="w-12 h-12" />
+                                            </div>
+                                        )}
+                                    </label>
+                                </div>
+                                {userData.profilePic && (
+                                    <button
+                                        onClick={() =>
+                                            setUserData((prev) => ({ ...prev, profilePic: null }))
+                                        }
+                                        className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-md hover:bg-red-600 transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                )}
                             </div>
-                            <h2
-                                className="text-lg text-red-500 font-medium cursor-pointer"
-                                onClick={() => {
-                                    setUserData((prevData) => ({
-                                        ...prevData,
-                                        profilePic: null,
-                                    }));
-                                }}
+                            <input
+                                id="profilePic"
+                                type="file"
+                                name="profilePic"
+                                accept="image/*"
+                                onChange={handleChange}
+                                className="hidden"
+                            />
+                            <label
+                                htmlFor="profilePic"
+                                className="text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer flex items-center gap-2"
                             >
-                                Remove
-                            </h2>
+                                {userData.profilePic ? (
+                                    <>
+                                        <Camera className="w-4 h-4" />
+                                        <span>Change photo</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload className="w-4 h-4" />
+                                        <span>Upload photo</span>
+                                    </>
+                                )}
+                            </label>
                         </div>
-                        <input
-                            className="hidden"
-                            id="image"
-                            type="file"
-                            name="profilePic"
-                            accept=".png, .jpeg, .jpg"
-                            onChange={handleChange}
-                        />
                     </div>
 
-                    <div className="my-4">
-                        <h2 className="text-2xl font-semibold my-2">Name</h2>
-                        <input
-                            name="name"
-                            type="text"
-                            placeholder="name"
-                            defaultValue={userData.name}
-                            onChange={handleChange}
-                            className="border focus:outline-none rounded-lg w-full p-2 placeholder:text-lg"
-                        />
-                    </div>
-                    <div className="my-4">
-                        <h2 className="text-2xl font-semibold my-2">Username</h2>
-                        <input
-                            type="text"
-                            name="username"
-                            placeholder="username"
-                            defaultValue={userData.username}
-                            onChange={handleChange}
-                            className="border focus:outline-none rounded-lg w-full p-2 placeholder:text-lg"
-                        />
-                    </div>
-
-                    <div className="my-4">
-                        <h2 className="text-2xl font-semibold my-2">Bio</h2>
-                        <textarea
-                            type="text"
-                            name="bio"
-                            placeholder="description"
-                            defaultValue={userData.bio}
-                            className=" h-[100px] resize-none w-full p-3 rounded-lg border text-lg focus:outline-none"
-                            onChange={handleChange}
-                        />
-                    </div>
-
-                    {!isLoading ? (
+                    {/* Profile Information */}
+                    <div className="p-6 space-y-6">
                         <div>
-                            <button
-                                disabled={isButtonDisabled}
-                                className={` px-7 py-3 rounded-full text-white my-3  ${isButtonDisabled ? " bg-green-300 " : " bg-green-600 "
-                                    } `}
-                                onClick={handleUpdateProfile}
+                            <label
+                                htmlFor="name"
+                                className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
                             >
-                                Update
-                            </button>
-                            <button
-                                className={` mx-4 px-7 py-3 rounded-full text-white my-3 bg-black`}
-                                onClick={() => navigate(-1)}
-                            >
-                                Back
-                            </button>
+                                <User className="w-4 h-4 text-gray-500" />
+                                <span>Name</span>
+                            </label>
+                            <div className="relative">
+                                <input
+                                    id="name"
+                                    name="name"
+                                    type="text"
+                                    value={userData.name || ""}
+                                    onChange={handleChange}
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="Your name"
+                                />
+                                <User className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
+                            </div>
                         </div>
-                    ) : (
-                        <span className="loader"></span>
-                    )}
+
+                        <div>
+                            <label
+                                htmlFor="username"
+                                className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
+                            >
+                                <AtSign className="w-4 h-4 text-gray-500" />
+                                <span>Username</span>
+                            </label>
+                            <div className="relative">
+                                <input
+                                    id="username"
+                                    name="username"
+                                    type="text"
+                                    value={userData.username || ""}
+                                    onChange={handleChange}
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="Your username"
+                                />
+                                <AtSign className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
+                            </div>
+                            <p className="mt-2 text-sm text-gray-500">
+                                Your profile URL: <span className="text-indigo-600">@{userData.username || "username"}</span>
+                            </p>
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor="bio"
+                                className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
+                            >
+                                <Pencil className="w-4 h-4 text-gray-500" />
+                                <span>Bio</span>
+                            </label>
+                            <textarea
+                                id="bio"
+                                name="bio"
+                                rows="4"
+                                value={userData.bio || ""}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                                placeholder="Tell us about yourself..."
+                                maxLength="160"
+                            />
+
+                            <div className="flex justify-between mt-1">
+                                <p className="text-xs text-gray-500">
+                                    Brief description for your profile
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                    {userData.bio?.length || 0}/160
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Save Button */}
+                    <div className="p-6 border-t border-gray-200 flex justify-end">
+                        <button
+                            onClick={handleUpdateProfile}
+                            disabled={isButtonDisabled || isLoading}
+                            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${isButtonDisabled || isLoading
+                                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                    : "bg-indigo-600 text-white hover:bg-indigo-700"
+                                }`}
+                        >
+                            {isLoading ? (
+                                <div className="animate-spin">
+                                    <svg
+                                        className="w-5 h-5"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        ></circle>
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        ></path>
+                                    </svg>
+                                </div>
+                            ) : (
+                                <>
+                                    <Check className="w-5 h-5" />
+                                    <span>Save Changes</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

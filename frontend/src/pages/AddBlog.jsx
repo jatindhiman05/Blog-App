@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-
 import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
 import NestedList from "@editorjs/nested-list";
@@ -15,6 +14,7 @@ import TextVariantTune from "@editorjs/text-variant-tune";
 import { setIsOpen } from "../utils/commentSlice";
 import { removeSelectedBlog } from "../utils/selectedBlogSlice";
 import useLoader from "../hooks/useLoader";
+import { Image, Upload, Save, ArrowLeft, X, Plus } from "lucide-react";
 
 function AddBlog() {
     const { id } = useParams();
@@ -80,11 +80,10 @@ function AddBlog() {
         formData.append("title", blogData.title);
         formData.append("description", blogData.description);
         formData.append("image", blogData.image);
-
         formData.append("content", JSON.stringify(blogData.content));
-
         formData.append("tags", JSON.stringify(blogData.tags));
         formData.append("draft", blogData.draft);
+
         let existingImages = [];
 
         blogData.content.blocks.forEach((block) => {
@@ -138,7 +137,7 @@ function AddBlog() {
     function initializeEditorjs() {
         editorjsRef.current = new EditorJS({
             holder: "editorjs",
-            placeholder: "write something...",
+            placeholder: "Write your story here...",
             data: content,
             tools: {
                 header: {
@@ -166,7 +165,6 @@ function AddBlog() {
                             uploadByFile: async (image) => {
                                 return {
                                     success: 1,
-
                                     file: {
                                         url: URL.createObjectURL(image),
                                         image,
@@ -195,11 +193,11 @@ function AddBlog() {
         if ((e.code == "Enter" || e.keyCode == "13") && tag !== "") {
             if (blogData.tags.length >= 10) {
                 e.target.value = "";
-                return toast.error("You can add upto maximum 10 tags");
+                return toast.error("You can add up to 10 tags maximum");
             }
             if (blogData.tags.includes(tag)) {
                 e.target.value = "";
-                return toast.error("This tag already added");
+                return toast.error("This tag already exists");
             }
             setBlogData((prev) => ({
                 ...prev,
@@ -242,158 +240,213 @@ function AddBlog() {
     return token == null ? (
         <Navigate to={"/signin"} />
     ) : (
-        <div className=" p-5 w-full sm:w-[500px] lg:w-[1000px] mx-auto">
-            <div className=" lg:flex lg:justify-between  gap-8">
-                <div className=" lg:w-3/6">
-                    <h2 className="text-2xl font-semibold my-2">Image</h2>
-                    <label htmlFor="image" className=" ">
-                        {blogData.image ? (
-                            <img
-                                src={
-                                    typeof blogData.image == "string"
-                                        ? blogData.image
-                                        : URL.createObjectURL(blogData.image)
-                                }
-                                alt=""
-                                className="aspect-video object-cover border rounded-lg"
-                            />
-                        ) : (
-                            <div className=" bg-white border rounded-lg aspect-video opacity-50 flex justify-center items-center text-4xl">
-                                Select Image
-                            </div>
-                        )}
-                    </label>
-                    <input
-                        className="hidden"
-                        id="image"
-                        type="file"
-                        accept=".png, .jpeg, .jpg"
-                        onChange={(e) =>
-                            setBlogData((blogData) => ({
-                                ...blogData,
-                                image: e.target.files[0],
-                            }))
-                        }
-                    />
-                </div>
-
-                <div className=" lg:w-3/6">
-                    <div className="my-4">
-                        <h2 className="text-2xl font-semibold my-2">Title</h2>
-                        <input
-                            type="text"
-                            placeholder="title"
-                            onChange={(e) =>
-                                setBlogData((blogData) => ({
-                                    ...blogData,
-                                    title: e.target.value,
-                                }))
-                            }
-                            value={blogData.title}
-                            className="border focus:outline-none rounded-lg w-full p-2 placeholder:text-lg"
-                        />
-                    </div>
-
-                    <div className="my-4">
-                        <h2 className="text-2xl font-semibold my-2">Tags</h2>
-                        <input
-                            type="text"
-                            placeholder="tags"
-                            className="w-full p-3 rounded-lg border text-lg focus:outline-none"
-                            onKeyDown={handleKeyDown}
-                        />
-
-                        <div className="flex justify-between my-2">
-                            <p className="text-xs my1 opacity-60">
-                                *Click on Enter to add Tag
-                            </p>
-                            <p className="text-xs my1 opacity-60">
-                                {10 - blogData.tags.length} tags remaining
-                            </p>
-                        </div>
-
-                        <div className="flex flex-wrap">
-                            {blogData?.tags?.map((tag, index) => (
-                                <div
-                                    key={index}
-                                    className="m-2 bg-gray-200 text-black  hover:text-white hover:bg-blue-500 rounded-full px-7 py-2 flex gap-3 justify-center items-center"
-                                >
-                                    <p>{tag}</p>
-                                    <i
-                                        className="fi fi-sr-cross-circle mt-1 text-xl cursor-pointer"
-                                        onClick={() => deleteTag(index)}
-                                    ></i>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="my-4">
-                <h2 className="text-2xl font-semibold my-2">Description</h2>
-                <textarea
-                    type="text"
-                    placeholder="description"
-                    value={blogData.description}
-                    className=" h-[100px] resize-none w-full p-3 rounded-lg border text-lg focus:outline-none"
-                    onChange={(e) =>
-                        setBlogData((blogData) => ({
-                            ...blogData,
-                            description: e.target.value,
-                        }))
-                    }
-                />
-            </div>
-
-            <div className="my-4">
-                <h2 className="text-2xl font-semibold my-2">Draft</h2>
-                <select
-                    value={blogData.draft}
-                    name=""
-                    id=""
-                    className="w-full p-3 rounded-lg border text-lg focus:outline-none"
-                    onChange={(e) =>
-                        setBlogData((prev) => ({
-                            ...prev,
-                            draft: e.target.value == "true" ? true : false,
-                        }))
-                    }
-                >
-                    <option value="true">True</option>
-                    <option value="false">False</option>
-                </select>
-            </div>
-
-            <div className="my-4">
-                <h2 className="text-2xl font-semibold my-2">Content</h2>
-                <div id="editorjs" className="w-full"></div>
-            </div>
-
-            {!isLoading ? (
-                <div>
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8 px-4 sm:px-6">
+            <div className="max-w-6xl mx-auto">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-8">
                     <button
-                        className="bg-blue-500 px-7 py-3 rounded-full  font-semibold text-white my-6 "
-                        onClick={id ? handleUpdateBlog : handlePostBlog}
-                    >
-                        {blogData.draft
-                            ? "Save as Draft"
-                            : id
-                                ? "Update blog"
-                                : "Post blog"}
-                    </button>
-                    <button
-                        className={` mx-4 px-7 py-3 rounded-full text-white my-3 bg-black`}
                         onClick={() => navigate(-1)}
+                        className="flex items-center gap-2 text-gray-600 hover:text-indigo-600"
                     >
-                        Back
+                        <ArrowLeft className="w-5 h-5" />
+                        <span>Back</span>
                     </button>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        {id ? "Edit Blog Post" : "Create New Blog Post"}
+                    </h1>
+                    <div className="w-10"></div> {/* Spacer for alignment */}
                 </div>
-            ) : (
-                <div className="flex justify-center items-center w-full h-[calc(100vh-500px)]">
-                    <span className="loader"></span>
+
+                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div className="p-6 md:p-8 space-y-8">
+                        {/* Title Section */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Blog Title
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Enter a compelling title..."
+                                onChange={(e) =>
+                                    setBlogData((blogData) => ({
+                                        ...blogData,
+                                        title: e.target.value,
+                                    }))
+                                }
+                                value={blogData.title}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg font-medium"
+                            />
+                        </div>
+
+                        {/* Image Upload Section */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Featured Image
+                            </label>
+                            <div className="flex flex-col sm:flex-row gap-6">
+                                <label htmlFor="image" className="cursor-pointer flex-1">
+                                    {blogData.image ? (
+                                        <div className="relative group rounded-lg overflow-hidden border border-gray-200">
+                                            <img
+                                                src={
+                                                    typeof blogData.image == "string"
+                                                        ? blogData.image
+                                                        : URL.createObjectURL(blogData.image)
+                                                }
+                                                alt="Featured"
+                                                className="w-full h-64 object-cover transition-all duration-300 group-hover:opacity-90"
+                                            />
+                                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 flex items-center justify-center transition-all duration-300">
+                                                <div className="bg-white/90 group-hover:bg-white px-4 py-2 rounded-full flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                    <Image className="w-4 h-4" />
+                                                    <span>Change Image</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="border-2 border-dashed border-gray-300 rounded-lg h-64 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+                                            <Upload className="w-10 h-10 text-gray-400 mb-3" />
+                                            <p className="text-gray-600 font-medium">Upload featured image</p>
+                                            <p className="text-sm text-gray-400 mt-1">PNG, JPG, JPEG (Max 5MB)</p>
+                                        </div>
+                                    )}
+                                </label>
+                                <input
+                                    className="hidden"
+                                    id="image"
+                                    type="file"
+                                    accept=".png, .jpeg, .jpg"
+                                    onChange={(e) =>
+                                        setBlogData((blogData) => ({
+                                            ...blogData,
+                                            image: e.target.files[0],
+                                        }))
+                                    }
+                                />
+
+                                <div className="flex-1 space-y-6">
+                                    {/* Description Section */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Description
+                                        </label>
+                                        <textarea
+                                            placeholder="Write a short description that will appear in previews..."
+                                            value={blogData.description}
+                                            className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                                            onChange={(e) =>
+                                                setBlogData((blogData) => ({
+                                                    ...blogData,
+                                                    description: e.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </div>
+
+                                    {/* Tags Section */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Tags
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                placeholder="Add tags (press Enter to add)"
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                onKeyDown={handleKeyDown}
+                                            />
+                                            <div className="absolute right-3 top-3 text-sm text-gray-500">
+                                                {10 - blogData.tags.length} remaining
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2 mt-3">
+                                            {blogData?.tags?.map((tag, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center bg-indigo-50 text-indigo-700 rounded-full px-3 py-1 text-sm"
+                                                >
+                                                    {tag}
+                                                    <button
+                                                        onClick={() => deleteTag(index)}
+                                                        className="ml-1.5 text-indigo-400 hover:text-indigo-600"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Content Editor Section */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Content
+                            </label>
+                            <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                                <div id="editorjs" className="min-h-[500px] p-4 bg-white"></div>
+                            </div>
+                        </div>
+
+                        {/* Footer Actions */}
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-200">
+                            <div className="flex items-center gap-3">
+                                <label className="text-sm font-medium text-gray-700">
+                                    Publication Status:
+                                </label>
+                                <div className="flex bg-gray-100 p-1 rounded-lg">
+                                    <button
+                                        onClick={() => setBlogData(prev => ({ ...prev, draft: false }))}
+                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${!blogData.draft ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'
+                                            }`}
+                                    >
+                                        Publish
+                                    </button>
+                                    <button
+                                        onClick={() => setBlogData(prev => ({ ...prev, draft: true }))}
+                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${blogData.draft ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'
+                                            }`}
+                                    >
+                                        Draft
+                                    </button>
+                                </div>
+                            </div>
+
+                            {!isLoading ? (
+                                <button
+                                    onClick={id ? handleUpdateBlog : handlePostBlog}
+                                    className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white font-medium transition-colors"
+                                >
+                                    <Save className="w-5 h-5" />
+                                    {blogData.draft
+                                        ? id
+                                            ? "Update Draft"
+                                            : "Save as Draft"
+                                        : id
+                                            ? "Update Blog"
+                                            : "Publish Blog"}
+                                </button>
+                            ) : (
+                                <button
+                                    disabled
+                                    className="flex items-center gap-2 px-6 py-3 bg-indigo-400 rounded-lg text-white font-medium"
+                                >
+                                    <div className="animate-spin">
+                                        <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </div>
+                                    Processing...
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 }

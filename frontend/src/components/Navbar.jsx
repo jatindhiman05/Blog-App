@@ -237,7 +237,7 @@ const Navbar = () => {
                         <div className="px-4 py-3 space-y-2">
                             {token ? (
                                 <>
-                                    <div className="flex items-center gap-3 px-3 py-3  border-gray-200 dark:border-darkborder rounded-lg">
+                                    <div className="flex items-center gap-3 px-3 py-3  border-b border-gray-200 dark:border-darkborder">
                                         <img
                                             src={
                                                 profilePic ||
@@ -252,15 +252,23 @@ const Navbar = () => {
                                         </div>
                                     </div>
                                     <Link
+                                        to={`/@${username}`}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-2.5 text-gray-700 dark:text-darktext rounded-lg hover:bg-gray-50 dark:hover:bg-darkbg"
+                                    >
+                                        <User size={16} className="text-indigo-500 dark:text-accent" />
+                                        <span>Profile</span>
+                                    </Link>
+                                    <Link
                                         to="/add-blog"
                                         onClick={() => setMobileMenuOpen(false)}
-                                        className="flex items-center gap-3 px-3 py-2.5 text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-accent dark:hover:bg-indigo-500 rounded-lg shadow-sm transition-colors"
+                                        className="flex items-center gap-3 px-3 py-2.5 text-gray-700 dark:text-darktext rounded-lg hover:bg-gray-50 dark:hover:bg-darkbg"
                                     >
                                         <PenSquare size={16} />
                                         <span>Write Article</span>
                                     </Link>
                                     <Link
-                                        to="/settings"
+                                        to="/setting"
                                         onClick={() => setMobileMenuOpen(false)}
                                         className="flex items-center gap-3 px-3 py-2.5 text-gray-700 dark:text-darktext rounded-lg hover:bg-gray-50 dark:hover:bg-darkbg"
                                     >

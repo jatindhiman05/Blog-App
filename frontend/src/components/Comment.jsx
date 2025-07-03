@@ -382,9 +382,6 @@ function DisplayComments({
                                             >
                                                 {comment?.user?.name}
                                             </Link>
-                                            <p className="text-xs text-gray-500 dark:text-darktext/70">
-                                                {formatDate(comment?.createdAt)}
-                                            </p>
                                         </div>
 
                                         {(comment?.user?._id === userId || userId === creatorId) && (

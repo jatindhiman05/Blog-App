@@ -297,7 +297,6 @@ function BlogPage() {
                                     )}
                                 </div>
                                 <div className="text-gray-500 dark:text-darktext/70 text-sm mt-1">
-                                    <span className="mx-2">•</span>
                                     <span>{Math.ceil(blogData.content.blocks.length / 5)} min read</span>
                                 </div>
                             </div>

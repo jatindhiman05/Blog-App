@@ -182,10 +182,9 @@ function HomePage() {
                                 <Loader2 className="animate-spin w-10 h-10 text-indigo-600" />
                             </div>
                         ) : (
-                            <div className="bg-white rounded-lg border border-gray-200 p-6 text-center shadow-sm">
+                            <div className="bg-white rounded-md  border-gray-200 p-6 text-center">
                                 <div className="max-w-md mx-auto">
-                                    <h3 className="text-xl font-medium text-gray-900 mb-2">No blogs found</h3>
-                                    <p className="text-gray-600 mb-4">It seems there are no blogs to display right now.</p>
+                                            <p className="text-gray-600 mb-4">No Blogs Found. Start Writing 😃</p>
                                     {token && (
                                         <Link
                                             to="/add-blog"

@@ -73,7 +73,27 @@ function ProfilePage() {
     }, [username]);
 
     if (isLoading) {
-        return <div className="loader"></div>
+        return (
+            <div className="min-h-screen bg-gray-50 dark:bg-darkbg">
+                <div className="py-12 px-4 sm:px-6">
+                    <div className="max-w-7xl mx-auto animate-pulse">
+                        <div className="flex flex-col md:flex-row items-center gap-8">
+                            <div className="w-32 h-32 rounded-full bg-gray-100 dark:bg-darkcard"></div>
+                            <div className="flex-1 space-y-4">
+                                <div className="h-8 w-64 bg-gray-100 dark:bg-darkcard rounded"></div>
+                                <div className="h-4 w-32 bg-gray-100 dark:bg-darkcard rounded"></div>
+                                <div className="h-4 w-48 bg-gray-100 dark:bg-darkcard rounded"></div>
+                                <div className="flex gap-4">
+                                    <div className="h-4 w-24 bg-gray-100 dark:bg-darkcard rounded"></div>
+                                    <div className="h-4 w-24 bg-gray-100 dark:bg-darkcard rounded"></div>
+                                </div>
+                                <div className="h-10 w-32 bg-gray-100 dark:bg-darkcard rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     if (!userData) {

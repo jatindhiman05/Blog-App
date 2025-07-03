@@ -26,7 +26,7 @@ function AboutPage() {
                             <img
                                 src="https://res.cloudinary.com/df19wbn0d/image/upload/w_1000,c_fill,ar_1:1,g_auto,r_max,bo_5px_solid_red,b_rgb:262c35/v1743484881/WhatsApp_Image_2025-01-18_at_23.23.17_bc50be96_shaq4m.jpg"
                                 alt="Jatin Dhiman"
-                                className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-darkbg"
+                                className="w-32 h-32 rounded-full object-cover  border-white dark:border-darkbg"
                             />
                         </div>
                     </div>
@@ -39,7 +39,7 @@ function AboutPage() {
                 </section>
 
                 {/* Mission Section */}
-                <section className="bg-white dark:bg-darkcard rounded-xl shadow-sm p-8 mb-12 border border-gray-200 dark:border-darkborder">
+                <section className="bg-white dark:bg-darkcard rounded-xl shadow-sm p-8 mb-12  border-gray-200 dark:border-darkborder">
                     <div className="flex flex-col lg:flex-row items-center gap-8">
                         <div className="flex-1">
                             <div className="inline-flex items-center gap-3 bg-indigo-50 dark:bg-darkbg px-4 py-2 rounded-full mb-6">
@@ -55,7 +55,7 @@ function AboutPage() {
                             <div className="flex flex-wrap gap-3">
                                 <Link
                                     to={'https://jatindhiman-portfolio.netlify.app/'}
-                                    className="flex items-center gap-2 bg-white dark:bg-darkbg border border-gray-200 dark:border-darkborder hover:border-indigo-300 dark:hover:border-accent text-gray-700 dark:text-darktext hover:text-indigo-600 dark:hover:text-accent px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
+                                    className="flex items-center gap-2 bg-white dark:bg-darkbg  border-gray-200 dark:border-darkborder hover:border-indigo-300 dark:hover:border-accent text-gray-700 dark:text-darktext hover:text-indigo-600 dark:hover:text-accent px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
                                     target="_blank"
                                 >
                                     <Users className="w-5 h-5" />
@@ -67,7 +67,7 @@ function AboutPage() {
                             <img
                                 src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=60"
                                 alt="Coding illustration"
-                                className="rounded-lg shadow-sm w-full h-auto object-cover border border-gray-200 dark:border-darkborder"
+                                className="rounded-lg shadow-sm w-full h-auto object-cover  border-gray-200 dark:border-darkborder"
                             />
                         </div>
                     </div>
@@ -77,7 +77,7 @@ function AboutPage() {
                 <section className="mb-12">
                     <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-darktext mb-8">My Core Values</h2>
                     <div className="grid md:grid-cols-3 gap-6">
-                        <div className="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-darkborder">
+                        <div className="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow  border-gray-200 dark:border-darkborder">
                             <div className="w-12 h-12 bg-indigo-50 dark:bg-darkbg rounded-lg flex items-center justify-center mb-4">
                                 <Code2 className="w-5 h-5 text-indigo-600 dark:text-accent" />
                             </div>
@@ -86,7 +86,7 @@ function AboutPage() {
                                 Committed to staying at the forefront of web technologies and sharing practical, up-to-date knowledge.
                             </p>
                         </div>
-                        <div className="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-darkborder">
+                        <div className="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow  border-gray-200 dark:border-darkborder">
                             <div className="w-12 h-12 bg-indigo-50 dark:bg-darkbg rounded-lg flex items-center justify-center mb-4">
                                 <BookOpen className="w-5 h-5 text-indigo-600 dark:text-accent" />
                             </div>
@@ -95,7 +95,7 @@ function AboutPage() {
                                 Believing that growth comes from both teaching and being open to learning from others.
                             </p>
                         </div>
-                        <div className="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-darkborder">
+                        <div className="bg-white dark:bg-darkcard p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow  border-gray-200 dark:border-darkborder">
                             <div className="w-12 h-12 bg-indigo-50 dark:bg-darkbg rounded-lg flex items-center justify-center mb-4">
                                 <Users className="w-5 h-5 text-indigo-600 dark:text-accent" />
                             </div>
@@ -124,7 +124,7 @@ function AboutPage() {
                             </Link>
                             <Link
                                 to="/"
-                                className="flex items-center gap-2 bg-transparent border border-white text-white hover:bg-white hover:bg-opacity-10 px-6 py-3 rounded-lg font-medium transition-colors"
+                                className="flex items-center gap-2 bg-transparent  border-white text-white hover:bg-white hover:bg-opacity-10 px-6 py-3 rounded-lg font-medium transition-colors"
                             >
                                 <BookOpen className="w-5 h-5" />
                                 Browse

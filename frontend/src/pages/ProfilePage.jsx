@@ -98,7 +98,7 @@ function ProfilePage() {
     if (!userData) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-darkbg flex flex-col items-center justify-center px-4">
-                <div className="text-center max-w-md p-8 bg-white dark:bg-darkcard rounded-xl shadow-lg border border-gray-200 dark:border-darkborder">
+                <div className="text-center max-w-md p-8 bg-white dark:bg-darkcard rounded-xl shadow-lg  border-gray-200 dark:border-darkborder">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-darktext mb-4">User not found</h2>
                     <p className="text-gray-600 dark:text-darktext/70 mb-6">The profile you're looking for doesn't exist or may have been removed.</p>
                     <Link
@@ -115,7 +115,7 @@ function ProfilePage() {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-darkbg">
             {/* Profile Header */}
-            <div className="bg-white dark:bg-darkcard py-12 px-4 sm:px-6 shadow-sm border-b border-gray-200 dark:border-darkborder">
+            <div className="bg-white dark:bg-darkcard py-12 px-4 sm:px-6 shadow-sm  border-gray-200 dark:border-darkborder">
                 <div className="max-w-7xl mx-auto">
                     {/* Back Button */}
                     <button
@@ -128,7 +128,7 @@ function ProfilePage() {
 
                     <div className="flex flex-col md:flex-row items-center gap-8">
                         <div className="relative group">
-                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-darkbg shadow-lg bg-gray-100 dark:bg-darkcard">
+                            <div className="w-32 h-32 rounded-full overflow-hidden  border-white dark:border-darkbg shadow-lg bg-gray-100 dark:bg-darkcard">
                                 <img
                                     src={
                                         userData.profilePic
@@ -142,7 +142,7 @@ function ProfilePage() {
                             {userData._id === userId && (
                                 <Link
                                     to="/edit-profile"
-                                    className="absolute -bottom-2 -right-2 bg-white dark:bg-darkcard text-indigo-600 dark:text-accent p-2 rounded-full shadow-md hover:bg-gray-50 dark:hover:bg-darkbg transition-colors border border-gray-200 dark:border-darkborder hover:shadow-lg"
+                                    className="absolute -bottom-2 -right-2 bg-white dark:bg-darkcard text-indigo-600 dark:text-accent p-2 rounded-full shadow-md hover:bg-gray-50 dark:hover:bg-darkbg transition-colors  border-gray-200 dark:border-darkborder hover:shadow-lg"
                                 >
                                     <PenSquare className="w-5 h-5" />
                                 </Link>
@@ -160,19 +160,19 @@ function ProfilePage() {
                             )}
 
                             <div className="flex flex-wrap justify-center md:justify-start items-center gap-4">
-                                <div className="flex items-center gap-2 text-gray-700 dark:text-darktext/80 bg-gray-50 dark:bg-darkbg px-3 py-1.5 rounded-full border border-gray-200 dark:border-darkborder">
+                                <div className="flex items-center gap-2 text-gray-700 dark:text-darktext/80 bg-gray-50 dark:bg-darkbg px-3 py-1.5 rounded-full  border-gray-200 dark:border-darkborder">
                                     <Users className="w-4 h-4 text-indigo-500 dark:text-accent" />
                                     <span className="text-sm">
                                         <span className="font-medium">{userData.followers.length}</span> followers
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-2 text-gray-700 dark:text-darktext/80 bg-gray-50 dark:bg-darkbg px-3 py-1.5 rounded-full border border-gray-200 dark:border-darkborder">
+                                <div className="flex items-center gap-2 text-gray-700 dark:text-darktext/80 bg-gray-50 dark:bg-darkbg px-3 py-1.5 rounded-full  border-gray-200 dark:border-darkborder">
                                     <UserPlus className="w-4 h-4 text-indigo-500 dark:text-accent" />
                                     <span className="text-sm">
                                         <span className="font-medium">{userData.following.length}</span> following
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-2 text-gray-700 dark:text-darktext/80 bg-gray-50 dark:bg-darkbg px-3 py-1.5 rounded-full border border-gray-200 dark:border-darkborder">
+                                <div className="flex items-center gap-2 text-gray-700 dark:text-darktext/80 bg-gray-50 dark:bg-darkbg px-3 py-1.5 rounded-full  border-gray-200 dark:border-darkborder">
                                     <BookOpen className="w-4 h-4 text-indigo-500 dark:text-accent" />
                                     <span className="text-sm">
                                         <span className="font-medium">{userData.blogs.filter(blog => !blog.draft).length}</span> posts
@@ -204,12 +204,12 @@ function ProfilePage() {
                     {/* Main Content */}
                     <div className="flex-1">
                         {/* Navigation Tabs */}
-                        <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm mb-6 overflow-hidden border border-gray-200 dark:border-darkborder">
+                        <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm mb-6 overflow-hidden  border-gray-200 dark:border-darkborder">
                             <nav className="flex overflow-x-auto">
                                 <Link
                                     to={`/${username}`}
                                     className={`flex items-center gap-2 px-6 py-4 whitespace-nowrap transition-colors ${location.pathname === `/${username}`
-                                        ? "text-indigo-600 dark:text-accent border-b-2 border-indigo-600 dark:border-accent font-medium"
+                                        ? "text-indigo-600 dark:text-accent  border-indigo-600 dark:border-accent font-medium"
                                         : "text-gray-600 dark:text-darktext/80 hover:text-indigo-600 dark:hover:text-accent hover:bg-gray-50 dark:hover:bg-darkbg"
                                         }`}
                                 >
@@ -221,7 +221,7 @@ function ProfilePage() {
                                     <Link
                                         to={`/${username}/saved-blogs`}
                                         className={`flex items-center gap-2 px-6 py-4 whitespace-nowrap transition-colors ${location.pathname === `/${username}/saved-blogs`
-                                            ? "text-indigo-600 dark:text-accent border-b-2 border-indigo-600 dark:border-accent font-medium"
+                                            ? "text-indigo-600 dark:text-accent  border-indigo-600 dark:border-accent font-medium"
                                             : "text-gray-600 dark:text-darktext/80 hover:text-indigo-600 dark:hover:text-accent hover:bg-gray-50 dark:hover:bg-darkbg"
                                             }`}
                                     >
@@ -234,7 +234,7 @@ function ProfilePage() {
                                     <Link
                                         to={`/${username}/liked-blogs`}
                                         className={`flex items-center gap-2 px-6 py-4 whitespace-nowrap transition-colors ${location.pathname === `/${username}/liked-blogs`
-                                            ? "text-indigo-600 dark:text-accent border-b-2 border-indigo-600 dark:border-accent font-medium"
+                                            ? "text-indigo-600 dark:text-accent  border-indigo-600 dark:border-accent font-medium"
                                             : "text-gray-600 dark:text-darktext/80 hover:text-indigo-600 dark:hover:text-accent hover:bg-gray-50 dark:hover:bg-darkbg"
                                             }`}
                                     >
@@ -247,7 +247,7 @@ function ProfilePage() {
                                     <Link
                                         to={`/${username}/draft-blogs`}
                                         className={`flex items-center gap-2 px-6 py-4 whitespace-nowrap transition-colors ${location.pathname === `/${username}/draft-blogs`
-                                            ? "text-indigo-600 dark:text-accent border-b-2 border-indigo-600 dark:border-accent font-medium"
+                                            ? "text-indigo-600 dark:text-accent  border-indigo-600 dark:border-accent font-medium"
                                             : "text-gray-600 dark:text-darktext/80 hover:text-indigo-600 dark:hover:text-accent hover:bg-gray-50 dark:hover:bg-darkbg"
                                             }`}
                                     >
@@ -259,7 +259,7 @@ function ProfilePage() {
                         </div>
 
                         {/* Content Section */}
-                        <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm border border-gray-200 dark:border-darkborder overflow-hidden">
+                        <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm  border-gray-200 dark:border-darkborder overflow-hidden">
                             {renderComponent()}
                         </div>
                     </div>
@@ -267,29 +267,29 @@ function ProfilePage() {
                     {/* Sidebar */}
                     <div className="lg:w-80 space-y-6">
                         {/* Stats Section */}
-                        <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-darkborder">
-                            <div className="p-6 border-b border-gray-200 dark:border-darkborder">
+                        <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden  border-gray-200 dark:border-darkborder">
+                            <div className="p-6  border-gray-200 dark:border-darkborder">
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-darktext flex items-center gap-2">
                                     <BookOpen className="w-5 h-5 text-indigo-600 dark:text-accent" />
                                     <span>Activity Stats</span>
                                 </h2>
                             </div>
                             <div className="p-6 grid grid-cols-2 gap-4">
-                                <div className="bg-indigo-50/50 dark:bg-darkbg p-4 rounded-lg border border-indigo-100 dark:border-darkborder hover:border-indigo-200 dark:hover:border-accent transition-colors">
+                                <div className="bg-indigo-50/50 dark:bg-darkbg p-4 rounded-lg  border-indigo-100 dark:border-darkborder hover:border-indigo-200 dark:hover:border-accent transition-colors">
                                     <p className="text-2xl font-bold text-indigo-600 dark:text-accent">{userData.blogs.filter(blog => !blog.draft).length}</p>
                                     <p className="text-sm text-gray-600 dark:text-darktext/70">Published</p>
                                 </div>
                                 {userData._id === userId && (
-                                    <div className="bg-purple-50/50 dark:bg-darkbg p-4 rounded-lg border border-purple-100 dark:border-darkborder hover:border-purple-200 dark:hover:border-purple-500 transition-colors">
+                                    <div className="bg-purple-50/50 dark:bg-darkbg p-4 rounded-lg  border-purple-100 dark:border-darkborder hover:border-purple-200 dark:hover:border-purple-500 transition-colors">
                                         <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{userData.blogs.filter(blog => blog.draft).length}</p>
                                         <p className="text-sm text-gray-600 dark:text-darktext/70">Drafts</p>
                                     </div>
                                 )}
-                                <div className="bg-green-50/50 dark:bg-darkbg p-4 rounded-lg border border-green-100 dark:border-darkborder hover:border-green-200 dark:hover:border-green-500 transition-colors">
+                                <div className="bg-green-50/50 dark:bg-darkbg p-4 rounded-lg  border-green-100 dark:border-darkborder hover:border-green-200 dark:hover:border-green-500 transition-colors">
                                     <p className="text-2xl font-bold text-green-600 dark:text-green-400">{userData.likeBlogs.length}</p>
                                     <p className="text-sm text-gray-600 dark:text-darktext/70">Liked</p>
                                 </div>
-                                <div className="bg-yellow-50/50 dark:bg-darkbg p-4 rounded-lg border border-yellow-100 dark:border-darkborder hover:border-yellow-200 dark:hover:border-yellow-500 transition-colors">
+                                <div className="bg-yellow-50/50 dark:bg-darkbg p-4 rounded-lg  border-yellow-100 dark:border-darkborder hover:border-yellow-200 dark:hover:border-yellow-500 transition-colors">
                                     <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{userData.saveBlogs.length}</p>
                                     <p className="text-sm text-gray-600 dark:text-darktext/70">Saved</p>
                                 </div>
@@ -297,8 +297,8 @@ function ProfilePage() {
                         </div>
 
                         {/* Following Section */}
-                        <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-darkborder">
-                            <div className="p-6 border-b border-gray-200 dark:border-darkborder">
+                        <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden  border-gray-200 dark:border-darkborder">
+                            <div className="p-6  border-gray-200 dark:border-darkborder">
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-darktext flex items-center gap-2">
                                     <Users className="w-5 h-5 text-indigo-600 dark:text-accent" />
                                     <span>Following</span>
@@ -314,7 +314,7 @@ function ProfilePage() {
                                                 className="flex items-center justify-between p-3 hover:bg-indigo-50 dark:hover:bg-darkbg rounded-lg transition-colors group"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 dark:bg-darkcard border border-gray-200 dark:border-darkborder">
+                                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 dark:bg-darkcard  border-gray-200 dark:border-darkborder">
                                                         <img
                                                             src={
                                                                 user.profilePic
@@ -350,8 +350,8 @@ function ProfilePage() {
                         </div>
 
                         {/* Member Since */}
-                        <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-darkborder">
-                            <div className="p-6 border-b border-gray-200 dark:border-darkborder">
+                        <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden  border-gray-200 dark:border-darkborder">
+                            <div className="p-6  border-gray-200 dark:border-darkborder">
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-darktext flex items-center gap-2">
                                     <Calendar className="w-5 h-5 text-indigo-600 dark:text-accent" />
                                     <span>Member Since</span>

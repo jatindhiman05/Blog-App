@@ -60,7 +60,7 @@ function HomePage() {
                                 {blogs.map((blog) => (
                                     <div
                                         key={blog._id}
-                                        className="bg-white dark:bg-darkcard rounded-lg overflow-hidden shadow-sm hover:shadow transition-shadow duration-200 border border-gray-100 dark:border-darkborder"
+                                        className="bg-white dark:bg-darkcard rounded-lg overflow-hidden shadow-sm hover:shadow transition-shadow duration-200  border-gray-100 dark:border-darkborder"
                                     >
                                         <Link to={`/blog/${blog.blogId}`} className="block group">
                                             <div className="flex flex-col sm:flex-row h-full">
@@ -90,7 +90,7 @@ function HomePage() {
                                                                         : `https://api.dicebear.com/7.x/initials/svg?seed=${blog.creator.name}`
                                                                 }
                                                                 alt={blog?.creator?.name || 'Unknown Creator'}
-                                                                className="w-8 h-8 rounded-full object-cover border border-white dark:border-darkcard shadow-xs"
+                                                                className="w-8 h-8 rounded-full object-cover  border-white dark:border-darkcard shadow-xs"
                                                             />
                                                         </Link>
                                                         <div>
@@ -126,7 +126,7 @@ function HomePage() {
                                                     )}
 
                                                     {/* Meta Info */}
-                                                    <div className="flex items-center gap-3 mt-2 pt-2 border-t border-gray-100 dark:border-darkborder text-xs sm:text-sm">
+                                                    <div className="flex items-center gap-3 mt-2 pt-2  border-gray-100 dark:border-darkborder text-xs sm:text-sm">
                                                         <span className="flex items-center gap-1 text-gray-500 dark:text-darktext/70 hover:text-gray-700 dark:hover:text-darktext transition-colors">
                                                             {blog.likes.includes(userId) ? (
                                                                 <FaHeart className="text-red-500 dark:text-accent text-sm" />
@@ -161,7 +161,7 @@ function HomePage() {
                                     <div className="flex justify-center mt-6">
                                         <button
                                             onClick={() => setPage((prev) => prev + 1)}
-                                            className="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-darkborder bg-white dark:bg-darkcard px-5 py-2 text-sm font-medium text-gray-700 dark:text-darktext hover:border-indigo-500 dark:hover:border-accent hover:bg-indigo-50 dark:hover:bg-darkbg hover:text-indigo-600 dark:hover:text-accent transition-all duration-200"
+                                            className="flex items-center gap-2 rounded-lg  border-gray-200 dark:border-darkborder bg-white dark:bg-darkcard px-5 py-2 text-sm font-medium text-gray-700 dark:text-darktext hover:border-indigo-500 dark:hover:border-accent hover:bg-indigo-50 dark:hover:bg-darkbg hover:text-indigo-600 dark:hover:text-accent transition-all duration-200"
                                             disabled={isLoading}
                                         >
                                             {isLoading ? (
@@ -184,7 +184,7 @@ function HomePage() {
                                 <Loader2 className="animate-spin w-10 h-10 text-indigo-600 dark:text-accent" />
                             </div>
                         ) : (
-                            <div className="bg-white dark:bg-darkcard rounded-md border border-gray-200 dark:border-darkborder p-6 text-center">
+                            <div className="bg-white dark:bg-darkcard rounded-md  border-gray-200 dark:border-darkborder p-6 text-center">
                                 <div className="max-w-md mx-auto">
                                     <p className="text-gray-600 dark:text-darktext/80 mb-4">
                                         No Blogs Found. Start Writing 😃
@@ -197,7 +197,7 @@ function HomePage() {
                     {/* Sidebar */}
                     <div className="w-full lg:w-1/3 space-y-5">
                         {/* Topics Section */}
-                        <div className="bg-white dark:bg-darkcard rounded-lg border border-gray-200 dark:border-darkborder p-4 shadow-sm hover:shadow transition-shadow">
+                        <div className="bg-white dark:bg-darkcard rounded-lg  border-gray-200 dark:border-darkborder p-4 shadow-sm hover:shadow transition-shadow">
                             <div className="flex items-center justify-between mb-3">
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-darktext flex items-center gap-2">
                                     <Hash className="h-4 w-4 text-indigo-600 dark:text-accent" />
@@ -218,7 +218,7 @@ function HomePage() {
                         </div>
 
                         {/* About Widget */}
-                        <div className="bg-white dark:bg-darkcard rounded-lg border border-gray-200 dark:border-darkborder p-4 shadow-sm hover:shadow transition-shadow">
+                        <div className="bg-white dark:bg-darkcard rounded-lg  border-gray-200 dark:border-darkborder p-4 shadow-sm hover:shadow transition-shadow">
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-darktext mb-2 flex items-center gap-2">
                                 <HelpCircle className="h-4 w-4 text-indigo-600 dark:text-accent" />
                                 About Us
@@ -240,7 +240,7 @@ function HomePage() {
                     </div>
                 </div>
             </div>
-            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-darkborder text-center mt-24">
+            <div className="mt-4 pt-4  border-gray-100 dark:border-darkborder text-center mt-24 ">
                 <p className="text-xs text-gray-500 dark:text-darktext/70">
                     © {new Date().getFullYear()} Blogosphere. All rights reserved.
                 </p>

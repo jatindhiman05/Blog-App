@@ -69,7 +69,7 @@ const Navbar = () => {
 
     return (
         <>
-            <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-darkbg border-b border-gray-200 dark:border-darkborder">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-darkbg shadow-sm dark:shadow-gray-800/50 border-gray-200 dark:border-darkborder">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
                     {/* Left section - Logo + Search */}
                     <div className="flex items-center gap-4">
@@ -98,7 +98,7 @@ const Navbar = () => {
                                         setSearchQuery("");
                                     }
                                 }}
-                                className="w-full bg-gray-50 dark:bg-darkcard text-sm text-gray-800 dark:text-darktext focus:ring-1 focus:ring-indigo-500 dark:focus:ring-accent focus:outline-none rounded-lg pl-10 pr-4 py-2 placeholder:text-gray-400 dark:placeholder:text-darktext/70 border border-gray-300 dark:border-darkborder hover:border-indigo-300 dark:hover:border-accent transition-all"
+                                className="w-full bg-gray-50 dark:bg-darkcard text-sm text-gray-800 dark:text-darktext focus:ring-1 focus:ring-indigo-500 dark:focus:ring-accent focus:outline-none rounded-lg pl-10 pr-4 py-2 placeholder:text-gray-400 dark:placeholder:text-darktext/70  border-gray-300 dark:border-darkborder hover:border-indigo-300 dark:hover:border-accent transition-all"
                             />
                         </div>
                     </div>
@@ -142,7 +142,7 @@ const Navbar = () => {
                                                 `https://api.dicebear.com/7.x/initials/svg?seed=${name}&background=indigo`
                                             }
                                             alt={name}
-                                            className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-darkborder group-hover:border-indigo-400 dark:group-hover:border-accent cursor-pointer transition-all"
+                                            className="w-8 h-8 rounded-full object-cover  border-gray-200 dark:border-darkborder group-hover:border-indigo-400 dark:group-hover:border-accent cursor-pointer transition-all"
                                         />
                                         <ChevronDown
                                             size={16}
@@ -151,8 +151,8 @@ const Navbar = () => {
                                     </button>
 
                                     {showPopup && (
-                                        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-darkcard rounded-lg shadow-md border border-gray-200 dark:border-darkborder overflow-hidden z-50">
-                                            <div className="px-4 py-3 border-b border-gray-200 dark:border-darkborder">
+                                        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-darkcard rounded-lg shadow-md  border-gray-200 dark:border-darkborder overflow-hidden z-50">
+                                            <div className="px-4 py-3  border-gray-200 dark:border-darkborder">
                                                 <p className="text-sm font-medium text-gray-900 dark:text-darktext">{name}</p>
                                                 <p className="text-xs text-gray-500 dark:text-darktext/70">@{username}</p>
                                             </div>
@@ -174,7 +174,7 @@ const Navbar = () => {
                                             </Link>
                                             <button
                                                 onClick={handleLogout}
-                                                className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-darkbg text-sm transition-colors border-t border-gray-200 dark:border-darkborder"
+                                                className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-darkbg text-sm transition-colors  border-gray-200 dark:border-darkborder"
                                                 disabled={isLoggingOut}
                                             >
                                                 {isLoggingOut ? (
@@ -207,7 +207,7 @@ const Navbar = () => {
 
                 {/* Mobile search bar */}
                 {showSearchBar && (
-                    <div className="md:hidden px-4 py-3 bg-white dark:bg-darkbg border-t border-gray-200 dark:border-darkborder">
+                    <div className="md:hidden px-4 py-3 bg-white dark:bg-darkbg  border-gray-200 dark:border-darkborder">
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                 <Search className="h-4 w-4 text-gray-400 dark:text-darktext/70" />
@@ -233,18 +233,18 @@ const Navbar = () => {
 
                 {/* Mobile menu */}
                 {mobileMenuOpen && (
-                    <div className="md:hidden bg-white dark:bg-darkbg border-t border-gray-200 dark:border-darkborder shadow-sm">
+                    <div className="md:hidden bg-white dark:bg-darkbg  border-gray-200 dark:border-darkborder shadow-sm">
                         <div className="px-4 py-3 space-y-2">
                             {token ? (
                                 <>
-                                    <div className="flex items-center gap-3 px-3 py-3 border-b border-gray-200 dark:border-darkborder rounded-lg">
+                                    <div className="flex items-center gap-3 px-3 py-3  border-gray-200 dark:border-darkborder rounded-lg">
                                         <img
                                             src={
                                                 profilePic ||
                                                 `https://api.dicebear.com/7.x/initials/svg?seed=${name}&background=indigo`
                                             }
                                             alt={name}
-                                            className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-darkborder"
+                                            className="w-10 h-10 rounded-full object-cover  border-gray-200 dark:border-darkborder"
                                         />
                                         <div>
                                             <p className="font-medium text-gray-900 dark:text-darktext">{name}</p>

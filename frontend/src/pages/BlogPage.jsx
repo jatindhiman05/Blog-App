@@ -207,7 +207,7 @@ function BlogPage() {
                 <span>Back</span>
             </button>
 
-            <article className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-darkborder">
+            <article className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden  border-gray-200 dark:border-darkborder">
                 {/* Blog Header */}
                 <div className="p-6 sm:p-8">
                     {/* Title */}
@@ -217,7 +217,7 @@ function BlogPage() {
 
                     {/* Featured Image */}
                     {blogData?.image && (
-                        <div className="mb-8 rounded-lg overflow-hidden border border-gray-200 dark:border-darkborder">
+                        <div className="mb-8 rounded-lg overflow-hidden  border-gray-200 dark:border-darkborder">
                             <img
                                 src={blogData?.image}
                                 alt="Blog"
@@ -233,7 +233,7 @@ function BlogPage() {
                                 to={`/@${blogData?.creator?.username || ""}`}
                                 className="hover:opacity-90 transition-opacity"
                             >
-                                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white dark:border-darkbg shadow-md">
+                                <div className="w-12 h-12 rounded-full overflow-hidden  border-white dark:border-darkbg shadow-md">
                                     <img
                                         src={
                                             blogData?.creator?.profilePic
@@ -322,7 +322,7 @@ function BlogPage() {
                                         <img
                                             src={block.data.file.url}
                                             alt="Block"
-                                            className="rounded-lg shadow-md w-full border border-gray-200 dark:border-darkborder"
+                                            className="rounded-lg shadow-md w-full  border-gray-200 dark:border-darkborder"
                                         />
                                         {block.data.caption && (
                                             <figcaption className="text-center text-gray-500 dark:text-darktext/70 text-sm mt-2">
@@ -363,7 +363,7 @@ function BlogPage() {
                 </div>
 
                 {/* Action Bar */}
-                <div className="border-t border-gray-200 dark:border-darkborder px-6 sm:px-8 py-4 bg-gray-50 dark:bg-darkbg">
+                <div className=" border-gray-200 dark:border-darkborder px-6 sm:px-8 py-4 bg-gray-50 dark:bg-darkbg">
                     <div className="flex justify-between items-center">
                         <div className="flex gap-6">
                             {/* Like Button */}

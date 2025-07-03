@@ -108,16 +108,16 @@ function EditProfile() {
                     <div className="w-10"></div> {/* Spacer for alignment */}
                 </div>
 
-                <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-darkborder">
+                <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden  border-gray-200 dark:border-darkborder">
                     {/* Profile Picture Section */}
-                    <div className="p-6 border-b border-gray-200 dark:border-darkborder">
+                    <div className="p-6  border-gray-200 dark:border-darkborder">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-darktext mb-4 flex items-center gap-2">
                             <Camera className="text-indigo-600 dark:text-accent w-5 h-5" />
                             Profile Picture
                         </h2>
                         <div className="flex flex-col items-center gap-4">
                             <div className="relative group">
-                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-darkbg shadow-lg bg-gray-100 dark:bg-darkbg">
+                                <div className="w-32 h-32 rounded-full overflow-hidden border-white dark:border-darkbg shadow-lg bg-gray-100 dark:bg-darkbg">
                                     <label
                                         htmlFor="profilePic"
                                         className="cursor-pointer block w-full h-full"
@@ -194,7 +194,7 @@ function EditProfile() {
                                     type="text"
                                     value={userData.name || ""}
                                     onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
+                                    className="w-full pl-10 pr-4 py-3 border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
                                     placeholder="Your name"
                                 />
                                 <User className="absolute left-3 top-3.5 w-4 h-4 text-gray-400 dark:text-darktext/70" />
@@ -216,7 +216,7 @@ function EditProfile() {
                                     type="text"
                                     value={userData.username || ""}
                                     onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
+                                    className="w-full pl-10 pr-4 py-3 border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
                                     placeholder="Your username"
                                 />
                                 <AtSign className="absolute left-3 top-3.5 w-4 h-4 text-gray-400 dark:text-darktext/70" />
@@ -240,7 +240,7 @@ function EditProfile() {
                                 rows="4"
                                 value={userData.bio || ""}
                                 onChange={handleChange}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70 resize-none"
+                                className="w-full px-4 py-3 border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70 resize-none"
                                 placeholder="Tell us about yourself..."
                                 maxLength="160"
                             />
@@ -257,7 +257,7 @@ function EditProfile() {
                     </div>
 
                     {/* Save Button */}
-                    <div className="p-6 border-t border-gray-200 dark:border-darkborder flex justify-end">
+                    <div className="p-6 border-gray-200 dark:border-darkborder flex justify-end">
                         <button
                             onClick={handleUpdateProfile}
                             disabled={isButtonDisabled || isLoading}

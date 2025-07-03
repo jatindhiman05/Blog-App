@@ -93,8 +93,8 @@ function AuthForm({ type }) {
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-darkbg dark:to-darkbg py-12 px-4 sm:px-6">
             <div className="max-w-md mx-auto">
-                <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-darkborder">
-                    <div className="p-6 border-b border-gray-200 dark:border-darkborder">
+                <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden  border-gray-200 dark:border-darkborder">
+                    <div className="p-6  border-gray-200 dark:border-darkborder">
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-darktext flex items-center gap-2">
                             <Settings className="text-indigo-600 dark:text-accent" />
                             {type === "signin" ? "Welcome back" : "Create account"}
@@ -124,7 +124,7 @@ function AuthForm({ type }) {
                                             required
                                             value={userData.name}
                                             onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                                            className="block w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
+                                            className="block w-full pl-10 pr-3 py-2.5 text-sm  border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
                                             placeholder="John Doe"
                                         />
                                     </div>
@@ -147,7 +147,7 @@ function AuthForm({ type }) {
                                         required
                                         value={userData.email}
                                         onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                                        className="block w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
+                                        className="block w-full pl-10 pr-3 py-2.5 text-sm  border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
                                         placeholder="you@example.com"
                                     />
                                 </div>
@@ -169,7 +169,7 @@ function AuthForm({ type }) {
                                         required
                                         value={userData.password}
                                         onChange={(e) => setUserData({ ...userData, password: e.target.value })}
-                                        className="block w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
+                                        className="block w-full pl-10 pr-3 py-2.5 text-sm  border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
                                         placeholder="••••••••"
                                         minLength={6}
                                     />
@@ -198,7 +198,7 @@ function AuthForm({ type }) {
                         <div className="mt-6">
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-gray-200 dark:border-darkborder"></div>
+                                    <div className="w-full border-gray-200 dark:border-darkborder"></div>
                                 </div>
                                 <div className="relative flex justify-center text-sm">
                                     <span className="px-2 bg-white dark:bg-darkcard text-gray-500 dark:text-darktext/70">Or continue with</span>
@@ -209,7 +209,7 @@ function AuthForm({ type }) {
                                 <button
                                     onClick={handleGoogleAuth}
                                     disabled={googleLoading}
-                                    className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-300 dark:border-darkborder rounded-lg text-sm font-medium text-gray-700 dark:text-darktext hover:bg-gray-50 dark:hover:bg-darkbg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent"
+                                    className="w-full flex justify-center items-center gap-2 py-2.5 px-4  border-gray-300 dark:border-darkborder rounded-lg text-sm font-medium text-gray-700 dark:text-darktext hover:bg-gray-50 dark:hover:bg-darkbg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent"
                                 >
                                     {googleLoading ? (
                                         <svg className="animate-spin h-4 w-4 text-gray-400 dark:text-darktext/70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

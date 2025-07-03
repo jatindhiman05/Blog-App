@@ -10,7 +10,6 @@ import {
 } from "../utils/selectedBlogSlice";
 import Comment from "../components/Comment";
 import { setIsOpen } from "../utils/commentSlice";
-import { formatDate } from "../utils/formatDate";
 import { updateData } from "../utils/userSilce";
 import { Bookmark, Heart, MessageCircle, Edit, Loader2, ArrowLeft, Trash2, X } from "lucide-react";
 import Modal from "../components/Modal";
@@ -298,7 +297,6 @@ function BlogPage() {
                                     )}
                                 </div>
                                 <div className="text-gray-500 dark:text-darktext/70 text-sm mt-1">
-                                    <span>{formatDate(blogData?.createdAt)}</span>
                                     <span className="mx-2">•</span>
                                     <span>{Math.ceil(blogData.content.blocks.length / 5)} min read</span>
                                 </div>

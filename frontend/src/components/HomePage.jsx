@@ -98,7 +98,7 @@ function HomePage() {
                                                                 {blog?.creator?.name || 'Unknown'}
                                                             </p>
                                                             <p className="text-xs text-gray-500 dark:text-darktext/70">
-                                                                {formatDate(blog.createdAt)} · {Math.ceil(blog.content.blocks.length / 5)} min read
+                                                                {Math.ceil(blog.content.blocks.length / 5)} min read
                                                             </p>
                                                         </div>
                                                     </div>

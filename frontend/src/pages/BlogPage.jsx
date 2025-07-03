@@ -12,7 +12,8 @@ import Comment from "../components/Comment";
 import { setIsOpen } from "../utils/commentSlice";
 import { formatDate } from "../utils/formatDate";
 import { updateData } from "../utils/userSilce";
-import { Bookmark, Heart, MessageCircle, Edit, Loader2, ArrowLeft } from "lucide-react";
+import { Bookmark, Heart, MessageCircle, Edit, Loader2, ArrowLeft, Trash2, X } from "lucide-react";
+import Modal from "../components/Modal";
 
 // Helper Functions
 export async function handleSaveBlogs(id, token) {
@@ -72,6 +73,8 @@ function BlogPage() {
     const [isLike, setIsLike] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isFollowing, setIsFollowing] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     async function fetchBlogById() {
         setIsLoading(true);
@@ -157,6 +160,33 @@ function BlogPage() {
             setIsFollowing(originalIsFollowing);
         }
     }
+
+
+    async function handleDeleteBlog() {
+        if (!token) {
+            return toast.error("Please sign in to delete this blog");
+        }
+
+        setIsDeleting(true);
+        try {
+            await axios.delete(
+                `${import.meta.env.VITE_BACKEND_URL}/blogs/${blogData._id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            toast.success("Blog deleted successfully");
+            navigate("/"); // Redirect to home after deletion
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to delete blog");
+        } finally {
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+        }
+    }
+
 
     useEffect(() => {
         fetchBlogById();
@@ -276,19 +306,28 @@ function BlogPage() {
                         </div>
 
                         {token && email === blogData?.creator?.email && (
-                            <Link
-                                to={`/edit/${blogData?.blogId}`}
-                                className="flex items-center gap-2 bg-indigo-600 dark:bg-accent hover:bg-indigo-700 dark:hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm transition-colors"
-                            >
-                                <Edit className="w-4 h-4" />
-                                Edit
-                            </Link>
+                            <div className="flex gap-3">
+                                <Link
+                                    to={`/edit/${blogData?.blogId}`}
+                                    className="flex items-center gap-2 bg-indigo-600 dark:bg-accent hover:bg-indigo-700 dark:hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                    Edit
+                                </Link>
+                                <button
+                                    onClick={() => setIsDeleteModalOpen(true)}
+                                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
 
                 {/* Blog Content */}
-                <div className="px-6 sm:px-8 pb-8">
+                <div className="px-6 sm:px-8 pb-8 ">
                     <div className="prose prose-lg max-w-none text-gray-700 dark:text-darktext/80">
                         {content?.blocks?.map((block, index) => {
                             if (block.type === "header") {
@@ -322,7 +361,7 @@ function BlogPage() {
                                         <img
                                             src={block.data.file.url}
                                             alt="Block"
-                                            className="rounded-lg shadow-md w-full  border-gray-200 dark:border-darkborder"
+                                            className="rounded-lg shadow-md w-full border-gray-200 dark:border-darkborder"
                                         />
                                         {block.data.caption && (
                                             <figcaption className="text-center text-gray-500 dark:text-darktext/70 text-sm mt-2">
@@ -399,6 +438,35 @@ function BlogPage() {
 
             {/* Comment Section */}
             {isOpen && <Comment blogId={blogData?._id} isOpen={isOpen} />}
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                title="Delete Blog"
+                cancelButtonText="Cancel"
+                actionButton={
+                    <button
+                        onClick={handleDeleteBlog}
+                        disabled={isDeleting}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 min-w-[80px]"
+                    >
+                        {isDeleting ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Deleting...
+                            </>
+                        ) : (
+                            "Delete"
+                        )}
+                    </button>
+                }
+            >
+                <p className="text-gray-600 dark:text-darktext/80">
+                    Are you sure you want to delete this blog? This action cannot be undone.
+                </p>
+            </Modal>
+
         </div>
     );
 }

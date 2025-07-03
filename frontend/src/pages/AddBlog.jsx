@@ -381,15 +381,17 @@ function AddBlog() {
                             </div>
                         </div>
 
-                        {/* Content Editor Section */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-darktext mb-2">
-                                Content
-                            </label>
-                            <div className="border border-gray-200 dark:border-darkbg rounded-lg overflow-hidden shadow-sm">
-                                <div id="editorjs" className="min-h-[500px] p-4 bg-white dark:bg-darkbg"></div>
+                            {/* Content Editor Section */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-darktext mb-2">
+                                    Content
+                                </label>
+                                <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                                    <div id="editorjs" className="min-h-[500px] p-4 bg-white"></div>
+                                </div>
                             </div>
-                        </div>
+
+
 
                         {/* Footer Actions */}
                         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-200 dark:border-darkbg">

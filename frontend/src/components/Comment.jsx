@@ -21,8 +21,10 @@ import {
     Trash2,
     ArrowLeft,
     Send,
-    ChevronDown
+    ChevronDown,
+    Loader2
 } from "lucide-react";
+import Modal from "./Modal";
 
 function Comment({ blogId, isOpen }) {
     const dispatch = useDispatch();
@@ -30,6 +32,8 @@ function Comment({ blogId, isOpen }) {
     const [activeReply, setActiveReply] = useState(null);
     const [currentPopup, setCurrentPopup] = useState(null);
     const [currentEditComment, setCurrentEditComment] = useState(null);
+    const [commentToDelete, setCommentToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const sidebarRef = useRef(null);
 
     const {
@@ -75,6 +79,27 @@ function Comment({ blogId, isOpen }) {
             dispatch(setComments(res.data.newComment));
         } catch (error) {
             toast.error(error.response.data.message);
+        }
+    }
+
+    async function handleCommentDelete(id) {
+        setIsDeleting(true);
+        try {
+            const res = await axios.delete(
+                `${import.meta.env.VITE_BACKEND_URL}/blogs/comment/${id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            toast.success(res.data.message);
+            dispatch(deleteCommentAndReply(id));
+            setCommentToDelete(null);
+        } catch (error) {
+            toast.error(error.response.data.message);
+        } finally {
+            setIsDeleting(false);
         }
     }
 
@@ -152,9 +177,38 @@ function Comment({ blogId, isOpen }) {
                         currentEditComment={currentEditComment}
                         setCurrentEditComment={setCurrentEditComment}
                         creatorId={creatorId}
+                        setCommentToDelete={setCommentToDelete}
                     />
                 )}
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                isOpen={!!commentToDelete}
+                onClose={() => setCommentToDelete(null)}
+                title="Delete Comment"
+                cancelButtonText="Cancel"
+                actionButton={
+                    <button
+                        onClick={() => handleCommentDelete(commentToDelete)}
+                        disabled={isDeleting}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 min-w-[80px]"
+                    >
+                        {isDeleting ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Deleting...
+                            </>
+                        ) : (
+                            "Delete"
+                        )}
+                    </button>
+                }
+            >
+                <p className="text-gray-600 dark:text-darktext/80">
+                    Are you sure you want to delete this comment? This action cannot be undone.
+                </p>
+            </Modal>
         </div>
     );
 }
@@ -171,6 +225,7 @@ function DisplayComments({
     currentEditComment,
     setCurrentEditComment,
     creatorId,
+    setCommentToDelete,
 }) {
     const [reply, setReply] = useState("");
     const [updatedCommentContent, setUpdatedCommentContent] = useState("");
@@ -234,26 +289,6 @@ function DisplayComments({
             );
             toast.success(res.data.message);
             dispatch(setUpdatedComments(res.data.updatedComment));
-        } catch (error) {
-            toast.error(error.response.data.message);
-        } finally {
-            setUpdatedCommentContent("");
-            setCurrentEditComment(null);
-        }
-    }
-
-    async function handleCommentDelete(id) {
-        try {
-            const res = await axios.delete(
-                `${import.meta.env.VITE_BACKEND_URL}/blogs/comment/${id}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            toast.success(res.data.message);
-            dispatch(deleteCommentAndReply(id));
         } catch (error) {
             toast.error(error.response.data.message);
         } finally {
@@ -349,7 +384,7 @@ function DisplayComments({
                                                         <button
                                                             className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-darkbg text-left text-red-600 dark:text-red-400"
                                                             onClick={() => {
-                                                                handleCommentDelete(comment._id);
+                                                                setCommentToDelete(comment._id);
                                                                 setCurrentPopup(null);
                                                             }}
                                                         >
@@ -437,6 +472,7 @@ function DisplayComments({
                                         currentEditComment={currentEditComment}
                                         setCurrentEditComment={setCurrentEditComment}
                                         creatorId={creatorId}
+                                        setCommentToDelete={setCommentToDelete}
                                     />
                                 </div>
                             )}

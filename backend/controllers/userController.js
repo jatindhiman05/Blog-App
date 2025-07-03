@@ -431,37 +431,44 @@ async function getUserById(req, res) {
 
 async function updateUser(req, res) {
     try {
-        // db call
         const id = req.params.id;
-
-        const { name, username, bio } = req.body;
-
+        const { name, username, bio, profilePic } = req.body;
         const image = req.file;
 
-        //validation
-
         const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
 
-        if (!req.body.profilePic) {
+        if (profilePic === "") {
+            // User wants to remove profile picture
             if (user.profilePicId) {
                 await deleteImagefromCloudinary(user.profilePicId);
             }
             user.profilePic = null;
             user.profilePicId = null;
-        }
-
-        if (image) {
+        } else if (image) {
+            // New image uploaded
             const { secure_url, public_id } = await uploadImage(
                 `data:image/jpeg;base64,${image.buffer.toString("base64")}`
             );
-
+            // Remove old image if present
+            if (user.profilePicId) {
+                await deleteImagefromCloudinary(user.profilePicId);
+            }
             user.profilePic = secure_url;
             user.profilePicId = public_id;
+        } else if (profilePic) {
+            // Keep existing image
+            user.profilePic = profilePic;
+            // Do not change profilePicId
         }
 
         if (user.username !== username) {
             const findUser = await User.findOne({ username });
-
             if (findUser) {
                 return res.status(400).json({
                     success: false,
@@ -470,6 +477,7 @@ async function updateUser(req, res) {
             }
         }
 
+        // Update remaining fields
         user.username = username;
         user.bio = bio;
         user.name = name;
@@ -481,18 +489,20 @@ async function updateUser(req, res) {
             message: "User updated successfully",
             user: {
                 name: user.name,
-                profilePic: user.profilePic,
-                bio: user.bio,
                 username: user.username,
+                bio: user.bio,
+                profilePic: user.profilePic,
             },
         });
     } catch (err) {
+        console.error(err);
         return res.status(500).json({
             success: false,
             message: "Please try again",
         });
     }
 }
+
 
 async function deleteUser(req, res) {
     try {
@@ -525,29 +535,50 @@ async function followUser(req, res) {
         const followerId = req.user;
         const { id } = req.params;
 
-        const user = await User.findById(id);
-
-        if (!user) {
-            return res.status(500).json({
-                message: "User is not found",
+        if (followerId === id) {
+            return res.status(400).json({
+                message: "You cannot follow yourself.",
             });
         }
 
-        if (!user.followers.includes(followerId)) {
-            await User.findByIdAndUpdate(id, { $set: { followers: followerId } });
+        const user = await User.findById(id);
+        const follower = await User.findById(followerId);
 
-            await User.findByIdAndUpdate(followerId, { $set: { following: id } });
+        if (!user || !follower) {
+            return res.status(404).json({
+                message: "User not found.",
+            });
+        }
+
+        const isFollowing = user.followers.includes(followerId);
+
+        if (!isFollowing) {
+            await User.findByIdAndUpdate(id, {
+                $addToSet: { followers: followerId },
+            });
+
+            await User.findByIdAndUpdate(followerId, {
+                $addToSet: { following: id },
+            });
+
             return res.status(200).json({
                 success: true,
-                message: "Follow",
+                message: "Followed successfully",
+                following: true
             });
         } else {
-            await User.findByIdAndUpdate(id, { $unset: { followers: followerId } });
+            await User.findByIdAndUpdate(id, {
+                $pull: { followers: followerId },
+            });
 
-            await User.findByIdAndUpdate(followerId, { $unset: { following: id } });
+            await User.findByIdAndUpdate(followerId, {
+                $pull: { following: id },
+            });
+
             return res.status(200).json({
                 success: true,
-                message: "Unfollow",
+                message: "Unfollowed successfully",
+                following : false
             });
         }
     } catch (error) {
@@ -556,6 +587,7 @@ async function followUser(req, res) {
         });
     }
 }
+
 async function changeSavedLikedBlog(req, res) {
     try {
         const userId = req.user;

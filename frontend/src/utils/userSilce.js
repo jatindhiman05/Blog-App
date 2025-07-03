@@ -1,8 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const userSlice = createSlice({
-    name: "userSlice",
-    initialState: JSON.parse(localStorage.getItem("user")) || {
+const initialState =
+    JSON.parse(localStorage.getItem("user")) || {
         token: null,
         name: null,
         username: null,
@@ -11,38 +10,51 @@ const userSlice = createSlice({
         profilePic: null,
         followers: [],
         following: [],
-    },
+    };
+
+const userSlice = createSlice({
+    name: "userSlice",
+    initialState,
     reducers: {
         login(state, action) {
-            localStorage.setItem(
-                "user",
-                JSON.stringify({ followers: [], following: [], ...action.payload })
-            );
-            return { followers: [], following: [], ...action.payload };
+            const user = { ...state, ...action.payload };
+            localStorage.setItem("user", JSON.stringify(user));
+            return user;
         },
-        logout(state, action) {
+        logout() {
             localStorage.removeItem("user");
             return {
                 token: null,
+                name: null,
+                username: null,
+                email: null,
+                id: null,
+                profilePic: null,
+                followers: [],
+                following: [],
             };
         },
-
         updateData(state, action) {
-            const data = action.payload;
-            if (data[0] === "visibility") {
-                localStorage.setItem("user", JSON.stringify({ ...state, ...data[1] }));
-                return { ...state, ...data };
-            } else if (data[0] === "followers") {
-                const finalData = {
-                    ...state,
-                    following: state?.following?.includes(data[1])
-                        ? state?.following?.filter((id) => id !== data[1])
-                        : [...state.following, data[1]],
-                };
+            const [type, payload] = action.payload;
 
-                localStorage.setItem("user", JSON.stringify(finalData));
-                return finalData;
+            if (type === "visibility") {
+                const updatedUser = { ...state, ...payload };
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+                return updatedUser;
             }
+
+            if (type === "followers") {
+                const isFollowing = state.following.includes(payload);
+                const updatedFollowing = isFollowing
+                    ? state.following.filter((id) => id !== payload)
+                    : [...state.following, payload];
+
+                const updatedUser = { ...state, following: updatedFollowing };
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+                return updatedUser;
+            }
+
+            return state;
         },
     },
 });

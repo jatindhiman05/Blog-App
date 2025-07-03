@@ -216,7 +216,7 @@ async function addNestedComment(req, res) {
         }).then((reply) => {
             return reply.populate({
                 path: "user",
-                select: "name email",
+                select: "name email profilePic",
             });
         });
 

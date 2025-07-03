@@ -75,8 +75,12 @@ function EditProfile() {
         formData.append("username", userData.username);
         formData.append("bio", userData.bio);
 
-        if (userData.profilePic && typeof userData.profilePic !== "string") {
-            formData.append("profilePic", userData.profilePic);
+        if (userData.profilePic === null) {
+            formData.append("profilePic", ""); // signal to remove image
+        } else if (typeof userData.profilePic === "string") {
+            formData.append("profilePic", userData.profilePic); // keep existing Cloudinary URL
+        } else if (userData.profilePic instanceof File) {
+            formData.append("profilePic", userData.profilePic); // upload new image
         }
 
         try {
@@ -90,34 +94,16 @@ function EditProfile() {
                     },
                 }
             );
-
             toast.success(res.data.message);
-
-            const updatedUser = {
-                ...res.data.user,
-                token,
-                email,
-                id: userId,
-                profilePic: res.data.user.profilePic || userData.profilePic,
-            };
-
-            dispatch(login(updatedUser));
-
-            setUserData({
-                profilePic: updatedUser.profilePic,
-                username: updatedUser.username,
-                name: updatedUser.name,
-                bio: updatedUser.bio,
-            });
-
-            setImagePreview(updatedUser.profilePic);
-            navigate(`/@${updatedUser.username}`, { replace: true });
+            dispatch(login({ ...res.data.user, token, email, id: userId }));
+            navigate(`/@${userData.username}`);
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to update profile");
         } finally {
             stopLoading();
         }
     }
+    
 
     useEffect(() => {
         if (!initialData) return;

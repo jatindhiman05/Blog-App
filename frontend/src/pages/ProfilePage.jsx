@@ -11,10 +11,11 @@ function ProfilePage() {
     const { username } = useParams();
     const [userData, setUserData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const { token, id: userId, following,profilePic } = useSelector((state) => state.user);
+    const { token, id: userId, following } = useSelector((state) => state.user);
     const location = useLocation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [followLoading, setFollowLoading] = useState(false);
 
     function renderComponent() {
         if (location.pathname === `/${username}`) {
@@ -72,27 +73,7 @@ function ProfilePage() {
     }, [username]);
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen bg-gray-50 dark:bg-darkbg">
-                <div className="py-12 px-4 sm:px-6">
-                    <div className="max-w-7xl mx-auto animate-pulse">
-                        <div className="flex flex-col md:flex-row items-center gap-8">
-                            <div className="w-32 h-32 rounded-full bg-gray-100 dark:bg-darkcard"></div>
-                            <div className="flex-1 space-y-4">
-                                <div className="h-8 w-64 bg-gray-100 dark:bg-darkcard rounded"></div>
-                                <div className="h-4 w-32 bg-gray-100 dark:bg-darkcard rounded"></div>
-                                <div className="h-4 w-48 bg-gray-100 dark:bg-darkcard rounded"></div>
-                                <div className="flex gap-4">
-                                    <div className="h-4 w-24 bg-gray-100 dark:bg-darkcard rounded"></div>
-                                    <div className="h-4 w-24 bg-gray-100 dark:bg-darkcard rounded"></div>
-                                </div>
-                                <div className="h-10 w-32 bg-gray-100 dark:bg-darkcard rounded"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
+        return <div className="loader"></div>
     }
 
     if (!userData) {
@@ -131,8 +112,8 @@ function ProfilePage() {
                             <div className="w-32 h-32 rounded-full overflow-hidden  border-white dark:border-darkbg shadow-lg bg-gray-100 dark:bg-darkcard">
                                 <img
                                     src={
-                                        profilePic
-                                            ? profilePic
+                                        userData.profilePic
+                                            ? userData.profilePic
                                             : `https://api.dicebear.com/9.x/initials/svg?seed=${userData.name}`
                                     }
                                     alt={userData.name}
@@ -183,16 +164,58 @@ function ProfilePage() {
                             {userId !== userData._id && (
                                 <div className="flex gap-3 justify-center md:justify-start">
                                     <button
-                                        onClick={() => handleFollowCreator(userData._id, token, dispatch)}
-                                        className={`mt-2 px-6 py-2.5 rounded-full font-medium flex items-center gap-2 mx-auto md:mx-0 transition-all shadow-sm hover:shadow-md ${following.includes(userData._id)
-                                            ? "bg-indigo-50 dark:bg-darkbg text-indigo-700 dark:text-accent hover:bg-indigo-100 dark:hover:bg-darkborder border border-indigo-100 dark:border-darkborder"
-                                            : "bg-indigo-600 dark:bg-accent text-white hover:bg-indigo-700 dark:hover:bg-indigo-500"
+                                        onClick={async () => {
+                                            if (followLoading) return;
+                                            setFollowLoading(true);
+                                            const followed = await handleFollowCreator(userData._id, token, dispatch, userId);
+                                            if (followed === true) {
+                                                setUserData((prev) => ({
+                                                    ...prev,
+                                                    followers: [...prev.followers, userId],
+                                                }));
+                                            } else if (followed === false) {
+                                                setUserData((prev) => ({
+                                                    ...prev,
+                                                    followers: prev.followers.filter((id) => id !== userId),
+                                                }));
+                                            }
+                                            setFollowLoading(false);
+                                        }}
+                                        disabled={followLoading}
+                                        className={`mt-2 px-6 py-2.5 rounded-full font-medium flex items-center justify-center gap-2 mx-auto md:mx-0 transition-all shadow-sm hover:shadow-md
+                ${followLoading ? "opacity-90 cursor-not-allowed" : ""}
+                ${following.includes(userData._id)
+                                                ? "bg-indigo-50 dark:bg-darkbg text-indigo-700 dark:text-accent hover:bg-indigo-100 dark:hover:bg-darkborder border border-indigo-100 dark:border-darkborder"
+                                                : "bg-indigo-600 dark:bg-accent text-white hover:bg-indigo-700 dark:hover:bg-indigo-500"
                                             }`}
                                     >
-                                        {following.includes(userData._id) ? "Following" : "Follow"}
+                                        {followLoading ? (
+                                            <div className="flex items-center gap-2">
+                                                <svg
+                                                    className={`w-4 h-4 ${following.includes(userData._id) ? "text-indigo-600 dark:text-accent" : "text-white"}`}
+                                                    viewBox="0 0 24 24"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                >
+                                                    <path
+                                                        d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
+                                                        opacity=".25"
+                                                        fill="currentColor"
+                                                    />
+                                                    <path
+                                                        d="M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z"
+                                                        fill="currentColor"
+                                                        className="origin-center animate-spin"
+                                                        style={{ animationDuration: "1s" }}
+                                                    />
+                                                </svg>
+                                                <span>Processing...</span>
+                                            </div>
+                                        ) : following.includes(userData._id) ? "Following" : "Follow"}
                                     </button>
                                 </div>
                             )}
+
+
                         </div>
                     </div>
                 </div>

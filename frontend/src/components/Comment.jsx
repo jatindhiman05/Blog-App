@@ -244,6 +244,7 @@ function DisplayComments({
                     },
                 }
             );
+            console.log(res);
             setReply("");
             setActiveReply(null);
             dispatch(setReplies(res.data.newReply));

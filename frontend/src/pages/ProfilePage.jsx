@@ -11,7 +11,7 @@ function ProfilePage() {
     const { username } = useParams();
     const [userData, setUserData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const { token, id: userId, following } = useSelector((state) => state.user);
+    const { token, id: userId, following,profilePic } = useSelector((state) => state.user);
     const location = useLocation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -131,8 +131,8 @@ function ProfilePage() {
                             <div className="w-32 h-32 rounded-full overflow-hidden  border-white dark:border-darkbg shadow-lg bg-gray-100 dark:bg-darkcard">
                                 <img
                                     src={
-                                        userData.profilePic
-                                            ? userData.profilePic
+                                        profilePic
+                                            ? profilePic
                                             : `https://api.dicebear.com/9.x/initials/svg?seed=${userData.name}`
                                     }
                                     alt={userData.name}

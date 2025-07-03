@@ -5,7 +5,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { login } from "../utils/userSilce";
 import { Navigate, useNavigate } from "react-router-dom";
 import useLoader from "../hooks/useLoader";
-import { Camera, X, ArrowLeft, Check, User, AtSign, Pencil, Upload } from "lucide-react";
+import {
+    Camera,
+    X,
+    ArrowLeft,
+    Check,
+    User,
+    AtSign,
+    Pencil,
+    Upload,
+} from "lucide-react";
 
 function EditProfile() {
     const {
@@ -29,34 +38,46 @@ function EditProfile() {
         bio,
     });
 
-    const [initialData] = useState({
-        profilePic,
-        username,
-        name,
-        bio,
-    });
+    const [imagePreview, setImagePreview] = useState(
+        typeof profilePic === "string" ? profilePic : null
+    );
 
+    const [initialData, setInitialData] = useState(null);
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
+    useEffect(() => {
+        setInitialData({
+            profilePic,
+            username,
+            name,
+            bio,
+        });
+    }, []);
+
     function handleChange(e) {
-        const { value, name, files } = e.target;
-        if (files) {
-            setUserData((prevData) => ({ ...prevData, [name]: files[0] }));
+        const { name, value, files } = e.target;
+
+        if (files && files[0]) {
+            const file = files[0];
+            setUserData((prev) => ({ ...prev, profilePic: file }));
+            setImagePreview(URL.createObjectURL(file));
         } else {
-            setUserData((prevData) => ({ ...prevData, [name]: value }));
+            setUserData((prev) => ({ ...prev, [name]: value }));
         }
     }
 
     async function handleUpdateProfile() {
         startLoading();
         setIsButtonDisabled(true);
+
         const formData = new FormData();
         formData.append("name", userData.name);
         formData.append("username", userData.username);
+        formData.append("bio", userData.bio);
+
         if (userData.profilePic && typeof userData.profilePic !== "string") {
             formData.append("profilePic", userData.profilePic);
         }
-        formData.append("bio", userData.bio);
 
         try {
             const res = await axios.patch(
@@ -69,9 +90,28 @@ function EditProfile() {
                     },
                 }
             );
+
             toast.success(res.data.message);
-            dispatch(login({ ...res.data.user, token, email, id: userId }));
-            navigate(`/@${userData.username}`);
+
+            const updatedUser = {
+                ...res.data.user,
+                token,
+                email,
+                id: userId,
+                profilePic: res.data.user.profilePic || userData.profilePic,
+            };
+
+            dispatch(login(updatedUser));
+
+            setUserData({
+                profilePic: updatedUser.profilePic,
+                username: updatedUser.username,
+                name: updatedUser.name,
+                bio: updatedUser.bio,
+            });
+
+            setImagePreview(updatedUser.profilePic);
+            navigate(`/@${updatedUser.username}`, { replace: true });
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to update profile");
         } finally {
@@ -80,9 +120,15 @@ function EditProfile() {
     }
 
     useEffect(() => {
-        const hasChanged = Object.keys(userData).some(
-            (key) => JSON.stringify(userData[key]) !== JSON.stringify(initialData[key])
-        );
+        if (!initialData) return;
+
+        const hasChanged =
+            userData.username !== initialData.username ||
+            userData.name !== initialData.name ||
+            userData.bio !== initialData.bio ||
+            typeof userData.profilePic === "object" ||
+            userData.profilePic === null;
+
         setIsButtonDisabled(!hasChanged);
     }, [userData, initialData]);
 
@@ -93,7 +139,6 @@ function EditProfile() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-darkbg dark:to-darkbg py-8 px-4 sm:px-6">
             <div className="max-w-2xl mx-auto">
-                {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <button
                         onClick={() => navigate(-1)}
@@ -105,12 +150,11 @@ function EditProfile() {
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-darktext flex items-center gap-2">
                         Edit Profile
                     </h1>
-                    <div className="w-10"></div> {/* Spacer for alignment */}
+                    <div className="w-10"></div>
                 </div>
 
-                <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden  border-gray-200 dark:border-darkborder">
-                    {/* Profile Picture Section */}
-                    <div className="p-6  border-gray-200 dark:border-darkborder">
+                <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden border-gray-200 dark:border-darkborder">
+                    <div className="p-6 border-gray-200 dark:border-darkborder">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-darktext mb-4 flex items-center gap-2">
                             <Camera className="text-indigo-600 dark:text-accent w-5 h-5" />
                             Profile Picture
@@ -118,17 +162,10 @@ function EditProfile() {
                         <div className="flex flex-col items-center gap-4">
                             <div className="relative group">
                                 <div className="w-32 h-32 rounded-full overflow-hidden border-white dark:border-darkbg shadow-lg bg-gray-100 dark:bg-darkbg">
-                                    <label
-                                        htmlFor="profilePic"
-                                        className="cursor-pointer block w-full h-full"
-                                    >
-                                        {userData.profilePic ? (
+                                    <label htmlFor="profilePic" className="cursor-pointer block w-full h-full">
+                                        {imagePreview ? (
                                             <img
-                                                src={
-                                                    typeof userData.profilePic === "string"
-                                                        ? userData.profilePic
-                                                        : URL.createObjectURL(userData.profilePic)
-                                                }
+                                                src={imagePreview}
                                                 alt="Profile"
                                                 className="w-full h-full object-cover"
                                             />
@@ -141,9 +178,10 @@ function EditProfile() {
                                 </div>
                                 {userData.profilePic && (
                                     <button
-                                        onClick={() =>
-                                            setUserData((prev) => ({ ...prev, profilePic: null }))
-                                        }
+                                        onClick={() => {
+                                            setUserData((prev) => ({ ...prev, profilePic: null }));
+                                            setImagePreview(null);
+                                        }}
                                         className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-md hover:bg-red-600 transition-colors"
                                     >
                                         <X className="w-4 h-4" />
@@ -297,6 +335,7 @@ function EditProfile() {
                             )}
                         </button>
                     </div>
+
                 </div>
             </div>
         </div>

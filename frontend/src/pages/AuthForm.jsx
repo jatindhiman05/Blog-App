@@ -91,15 +91,15 @@ function AuthForm({ type }) {
     }, [dispatch, navigate]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 px-4 sm:px-6">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-darkbg dark:to-darkbg py-12 px-4 sm:px-6">
             <div className="max-w-md mx-auto">
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-gray-200">
-                        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                            <Settings className="text-indigo-600" />
+                <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-darkborder">
+                    <div className="p-6 border-b border-gray-200 dark:border-darkborder">
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-darktext flex items-center gap-2">
+                            <Settings className="text-indigo-600 dark:text-accent" />
                             {type === "signin" ? "Welcome back" : "Create account"}
                         </h1>
-                        <p className="text-gray-500 mt-1 text-sm">
+                        <p className="text-gray-500 dark:text-darktext/70 mt-1 text-sm">
                             {type === "signin"
                                 ? "Sign in to continue to your account"
                                 : "Get started with your new account"}
@@ -110,12 +110,12 @@ function AuthForm({ type }) {
                         <form onSubmit={handleAuthForm} className="space-y-4">
                             {type === "signup" && (
                                 <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-darktext/80 mb-1">
                                         Full Name
                                     </label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <User className="h-5 w-5 text-gray-400" />
+                                            <User className="h-5 w-5 text-gray-400 dark:text-darktext/70" />
                                         </div>
                                         <input
                                             id="name"
@@ -124,7 +124,7 @@ function AuthForm({ type }) {
                                             required
                                             value={userData.name}
                                             onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                                            className="block w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                            className="block w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
                                             placeholder="John Doe"
                                         />
                                     </div>
@@ -132,12 +132,12 @@ function AuthForm({ type }) {
                             )}
 
                             <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-darktext/80 mb-1">
                                     Email
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <AtSign className="h-5 w-5 text-gray-400" />
+                                        <AtSign className="h-5 w-5 text-gray-400 dark:text-darktext/70" />
                                     </div>
                                     <input
                                         id="email"
@@ -147,19 +147,19 @@ function AuthForm({ type }) {
                                         required
                                         value={userData.email}
                                         onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                                        className="block w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="block w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
                                         placeholder="you@example.com"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-darktext/80 mb-1">
                                     Password
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <KeyRound className="h-5 w-5 text-gray-400" />
+                                        <KeyRound className="h-5 w-5 text-gray-400 dark:text-darktext/70" />
                                     </div>
                                     <input
                                         id="password"
@@ -169,7 +169,7 @@ function AuthForm({ type }) {
                                         required
                                         value={userData.password}
                                         onChange={(e) => setUserData({ ...userData, password: e.target.value })}
-                                        className="block w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="block w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
                                         placeholder="••••••••"
                                         minLength={6}
                                     />
@@ -179,7 +179,7 @@ function AuthForm({ type }) {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className={`w-full flex justify-center py-2.5 px-4 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isLoading ? "opacity-80 cursor-not-allowed" : ""}`}
+                                className={`w-full flex justify-center py-2.5 px-4 rounded-lg text-sm font-medium text-white bg-indigo-600 dark:bg-accent hover:bg-indigo-700 dark:hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent ${isLoading ? "opacity-80 cursor-not-allowed" : ""}`}
                             >
                                 {isLoading ? (
                                     <>
@@ -198,10 +198,10 @@ function AuthForm({ type }) {
                         <div className="mt-6">
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-gray-200"></div>
+                                    <div className="w-full border-t border-gray-200 dark:border-darkborder"></div>
                                 </div>
                                 <div className="relative flex justify-center text-sm">
-                                    <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                                    <span className="px-2 bg-white dark:bg-darkcard text-gray-500 dark:text-darktext/70">Or continue with</span>
                                 </div>
                             </div>
 
@@ -209,10 +209,10 @@ function AuthForm({ type }) {
                                 <button
                                     onClick={handleGoogleAuth}
                                     disabled={googleLoading}
-                                    className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-300 dark:border-darkborder rounded-lg text-sm font-medium text-gray-700 dark:text-darktext hover:bg-gray-50 dark:hover:bg-darkbg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent"
                                 >
                                     {googleLoading ? (
-                                        <svg className="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <svg className="animate-spin h-4 w-4 text-gray-400 dark:text-darktext/70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
@@ -231,13 +231,13 @@ function AuthForm({ type }) {
                             </div>
                         </div>
 
-                        <p className="mt-6 text-center text-sm text-gray-600">
+                        <p className="mt-6 text-center text-sm text-gray-600 dark:text-darktext/70">
                             {type === "signin" ? (
                                 <>
                                     Don't have an account?{" "}
                                     <Link
                                         to="/signup"
-                                        className="font-medium text-indigo-600 hover:text-indigo-500"
+                                        className="font-medium text-indigo-600 dark:text-accent hover:text-indigo-500 dark:hover:text-accent/80"
                                     >
                                         Sign up
                                     </Link>
@@ -247,7 +247,7 @@ function AuthForm({ type }) {
                                     Already have an account?{" "}
                                     <Link
                                         to="/signin"
-                                        className="font-medium text-indigo-600 hover:text-indigo-500"
+                                        className="font-medium text-indigo-600 dark:text-accent hover:text-indigo-500 dark:hover:text-accent/80"
                                     >
                                         Sign in
                                     </Link>

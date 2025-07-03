@@ -174,20 +174,20 @@ function BlogPage() {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center min-h-screen">
-                <Loader2 className="animate-spin w-12 h-12 text-blue-600" />
+            <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-darkbg">
+                <Loader2 className="animate-spin w-12 h-12 text-indigo-600 dark:text-accent" />
             </div>
         );
     }
 
     if (!blogData) {
         return (
-            <div className="flex justify-center items-center min-h-screen">
+            <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-darkbg">
                 <div className="text-center">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-2">Blog not found</h2>
+                    <h2 className="text-2xl font-semibold text-gray-800 dark:text-darktext mb-2">Blog not found</h2>
                     <button
                         onClick={() => navigate(-1)}
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+                        className="flex items-center gap-2 text-indigo-600 dark:text-accent hover:text-indigo-800 dark:hover:text-accent/80"
                     >
                         <ArrowLeft className="w-5 h-5" />
                         Go back
@@ -198,26 +198,26 @@ function BlogPage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative bg-gray-50 dark:bg-darkbg">
             <button
                 onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8"
+                className="flex items-center gap-2 text-gray-600 dark:text-darktext/80 hover:text-gray-900 dark:hover:text-accent mb-8"
             >
                 <ArrowLeft className="w-5 h-5" />
                 <span>Back</span>
             </button>
 
-            <article className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <article className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-darkborder">
                 {/* Blog Header */}
                 <div className="p-6 sm:p-8">
-                    {/* Title comes first */}
-                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-6">
+                    {/* Title */}
+                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-darktext leading-tight mb-6">
                         {blogData.title}
                     </h1>
 
-                    {/* Featured Image comes next */}
+                    {/* Featured Image */}
                     {blogData?.image && (
-                        <div className="mb-8 rounded-lg overflow-hidden">
+                        <div className="mb-8 rounded-lg overflow-hidden border border-gray-200 dark:border-darkborder">
                             <img
                                 src={blogData?.image}
                                 alt="Blog"
@@ -226,14 +226,14 @@ function BlogPage() {
                         </div>
                     )}
 
-                    {/* Author Info comes after the image */}
+                    {/* Author Info */}
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 mb-6">
                         <div className="flex items-center gap-4">
                             <Link
                                 to={`/@${blogData?.creator?.username || ""}`}
                                 className="hover:opacity-90 transition-opacity"
                             >
-                                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-md">
+                                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white dark:border-darkbg shadow-md">
                                     <img
                                         src={
                                             blogData?.creator?.profilePic
@@ -250,7 +250,7 @@ function BlogPage() {
                                 <div className="flex items-center gap-3">
                                     <Link
                                         to={`/@${blogData?.creator?.username || ""}`}
-                                        className="text-lg font-semibold text-gray-900 hover:text-blue-600 hover:underline"
+                                        className="text-lg font-semibold text-gray-900 dark:text-darktext hover:text-indigo-600 dark:hover:text-accent hover:underline"
                                     >
                                         {blogData?.creator?.name || "Unknown"}
                                     </Link>
@@ -259,15 +259,15 @@ function BlogPage() {
                                         <button
                                             onClick={handleFollow}
                                             className={`px-3 py-1 text-sm rounded-full ${isFollowing
-                                                ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                : "bg-blue-600 text-white hover:bg-blue-700"
+                                                ? "bg-gray-100 dark:bg-darkbg text-gray-700 dark:text-darktext hover:bg-gray-200 dark:hover:bg-darkborder"
+                                                : "bg-indigo-600 dark:bg-accent text-white hover:bg-indigo-700 dark:hover:bg-indigo-500"
                                                 } transition-colors`}
                                         >
                                             {isFollowing ? "Following" : "Follow"}
                                         </button>
                                     )}
                                 </div>
-                                <div className="text-gray-500 text-sm mt-1">
+                                <div className="text-gray-500 dark:text-darktext/70 text-sm mt-1">
                                     <span>{formatDate(blogData?.createdAt)}</span>
                                     <span className="mx-2">•</span>
                                     <span>{Math.ceil(blogData.content.blocks.length / 5)} min read</span>
@@ -278,7 +278,7 @@ function BlogPage() {
                         {token && email === blogData?.creator?.email && (
                             <Link
                                 to={`/edit/${blogData?.blogId}`}
-                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                                className="flex items-center gap-2 bg-indigo-600 dark:bg-accent hover:bg-indigo-700 dark:hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm transition-colors"
                             >
                                 <Edit className="w-4 h-4" />
                                 Edit
@@ -289,14 +289,14 @@ function BlogPage() {
 
                 {/* Blog Content */}
                 <div className="px-6 sm:px-8 pb-8">
-                    <div className="prose prose-lg max-w-none text-gray-700">
+                    <div className="prose prose-lg max-w-none text-gray-700 dark:text-darktext/80">
                         {content?.blocks?.map((block, index) => {
                             if (block.type === "header") {
                                 const HeaderTag = `h${block.data.level}`;
                                 return (
                                     <HeaderTag
                                         key={index}
-                                        className="text-gray-900"
+                                        className="text-gray-900 dark:text-darktext"
                                         dangerouslySetInnerHTML={{
                                             __html: block.data.text,
                                         }}
@@ -322,10 +322,10 @@ function BlogPage() {
                                         <img
                                             src={block.data.file.url}
                                             alt="Block"
-                                            className="rounded-lg shadow-md w-full"
+                                            className="rounded-lg shadow-md w-full border border-gray-200 dark:border-darkborder"
                                         />
                                         {block.data.caption && (
-                                            <figcaption className="text-center text-gray-500 text-sm mt-2">
+                                            <figcaption className="text-center text-gray-500 dark:text-darktext/70 text-sm mt-2">
                                                 {block.data.caption}
                                             </figcaption>
                                         )}
@@ -363,13 +363,13 @@ function BlogPage() {
                 </div>
 
                 {/* Action Bar */}
-                <div className="border-t border-gray-200 px-6 sm:px-8 py-4 bg-gray-50">
+                <div className="border-t border-gray-200 dark:border-darkborder px-6 sm:px-8 py-4 bg-gray-50 dark:bg-darkbg">
                     <div className="flex justify-between items-center">
                         <div className="flex gap-6">
                             {/* Like Button */}
                             <button
                                 onClick={handleLike}
-                                className={`flex items-center gap-2 ${isLike ? "text-blue-600" : "text-gray-600 hover:text-blue-600"} transition-colors`}
+                                className={`flex items-center gap-2 ${isLike ? "text-indigo-600 dark:text-accent" : "text-gray-600 dark:text-darktext/80 hover:text-indigo-600 dark:hover:text-accent"} transition-colors`}
                             >
                                 <Heart className={`w-5 h-5 ${isLike ? "fill-current" : ""}`} />
                                 <span>{likes?.length || 0}</span>
@@ -378,7 +378,7 @@ function BlogPage() {
                             {/* Comment Button */}
                             <button
                                 onClick={() => dispatch(setIsOpen())}
-                                className="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors"
+                                className="flex items-center gap-2 text-gray-600 dark:text-darktext/80 hover:text-green-600 dark:hover:text-accent transition-colors"
                             >
                                 <MessageCircle className="w-5 h-5" />
                                 <span>{comments?.length || 0}</span>
@@ -388,7 +388,7 @@ function BlogPage() {
                         {/* Save Button */}
                         <button
                             onClick={handleSave}
-                            className={`flex items-center gap-2 ${isBlogSaved ? "text-purple-600" : "text-gray-600 hover:text-purple-600"} transition-colors`}
+                            className={`flex items-center gap-2 ${isBlogSaved ? "text-indigo-600 dark:text-accent" : "text-gray-600 dark:text-darktext/80 hover:text-indigo-600 dark:hover:text-accent"} transition-colors`}
                         >
                             <Bookmark className={`w-5 h-5 ${isBlogSaved ? "fill-current" : ""}`} />
                             <span className="hidden sm:inline">{isBlogSaved ? "Saved" : "Save"}</span>

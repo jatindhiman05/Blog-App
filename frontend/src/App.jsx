@@ -10,8 +10,23 @@ import EditProfile from "./pages/EditProfile";
 import SearchBlogs from "./components/SearchBlogs";
 import Setting from "./components/Setting";
 import AboutPage from "./components/AboutPage";
+import { useEffect } from "react";
+import { applyTheme } from "./utils/theme";
+
+
 
 function App() {
+  useEffect(() => {
+    const saved = localStorage.getItem("theme") || "light";
+    applyTheme(saved);
+
+    if (saved === "system") {
+      const media = window.matchMedia("(prefers-color-scheme: dark)");
+      const listener = () => applyTheme("system");
+      media.addEventListener("change", listener);
+      return () => media.removeEventListener("change", listener);
+    }
+  }, []);
   return (
     <Routes>
       <Route path="/" element={<Navbar />}>

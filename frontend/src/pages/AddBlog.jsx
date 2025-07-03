@@ -240,28 +240,28 @@ function AddBlog() {
     return token == null ? (
         <Navigate to={"/signin"} />
     ) : (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8 px-4 sm:px-6">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-darkbg dark:to-darkbg py-8 px-4 sm:px-6">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
                     <button
                         onClick={() => navigate(-1)}
-                        className="flex items-center gap-2 text-gray-600 hover:text-indigo-600"
+                        className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 dark:text-darktext dark:hover:text-accent"
                     >
                         <ArrowLeft className="w-5 h-5" />
                         <span>Back</span>
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-darktext">
                         {id ? "Edit Blog Post" : "Create New Blog Post"}
                     </h1>
                     <div className="w-10"></div> {/* Spacer for alignment */}
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-white dark:bg-darkcard rounded-xl shadow-sm overflow-hidden">
                     <div className="p-6 md:p-8 space-y-8">
                         {/* Title Section */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-darktext mb-2">
                                 Blog Title
                             </label>
                             <input
@@ -274,19 +274,19 @@ function AddBlog() {
                                     }))
                                 }
                                 value={blogData.title}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg font-medium"
+                                className="w-full px-4 py-3 border border-gray-300 dark:border-darkbg rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent text-lg font-medium bg-white dark:bg-darkbg text-gray-900 dark:text-darktext"
                             />
                         </div>
 
                         {/* Image Upload Section */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-darktext mb-2">
                                 Featured Image
                             </label>
                             <div className="flex flex-col sm:flex-row gap-6">
                                 <label htmlFor="image" className="cursor-pointer flex-1">
                                     {blogData.image ? (
-                                        <div className="relative group rounded-lg overflow-hidden border border-gray-200">
+                                        <div className="relative group rounded-lg overflow-hidden border border-gray-200 dark:border-darkbg">
                                             <img
                                                 src={
                                                     typeof blogData.image == "string"
@@ -297,17 +297,17 @@ function AddBlog() {
                                                 className="w-full h-64 object-cover transition-all duration-300 group-hover:opacity-90"
                                             />
                                             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 flex items-center justify-center transition-all duration-300">
-                                                <div className="bg-white/90 group-hover:bg-white px-4 py-2 rounded-full flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                <div className="bg-white/90 dark:bg-darkbg/90 group-hover:bg-white dark:group-hover:bg-darkcard px-4 py-2 rounded-full flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                                     <Image className="w-4 h-4" />
                                                     <span>Change Image</span>
                                                 </div>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="border-2 border-dashed border-gray-300 rounded-lg h-64 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
-                                            <Upload className="w-10 h-10 text-gray-400 mb-3" />
-                                            <p className="text-gray-600 font-medium">Upload featured image</p>
-                                            <p className="text-sm text-gray-400 mt-1">PNG, JPG, JPEG (Max 5MB)</p>
+                                        <div className="border-2 border-dashed border-gray-300 dark:border-darkbg rounded-lg h-64 flex flex-col items-center justify-center bg-gray-50 dark:bg-darkbg hover:bg-gray-100 dark:hover:bg-darkbg transition-colors duration-200">
+                                            <Upload className="w-10 h-10 text-gray-400 dark:text-darktext mb-3" />
+                                            <p className="text-gray-600 dark:text-darktext font-medium">Upload featured image</p>
+                                            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">PNG, JPG, JPEG (Max 5MB)</p>
                                         </div>
                                     )}
                                 </label>
@@ -327,13 +327,13 @@ function AddBlog() {
                                 <div className="flex-1 space-y-6">
                                     {/* Description Section */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-darktext mb-2">
                                             Description
                                         </label>
                                         <textarea
                                             placeholder="Write a short description that will appear in previews..."
                                             value={blogData.description}
-                                            className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                                            className="w-full h-32 px-4 py-3 border border-gray-300 dark:border-darkbg rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent resize-none bg-white dark:bg-darkbg text-gray-900 dark:text-darktext"
                                             onChange={(e) =>
                                                 setBlogData((blogData) => ({
                                                     ...blogData,
@@ -345,17 +345,17 @@ function AddBlog() {
 
                                     {/* Tags Section */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-darktext mb-2">
                                             Tags
                                         </label>
                                         <div className="relative">
                                             <input
                                                 type="text"
                                                 placeholder="Add tags (press Enter to add)"
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                className="w-full px-4 py-3 border border-gray-300 dark:border-darkbg rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent bg-white dark:bg-darkbg text-gray-900 dark:text-darktext"
                                                 onKeyDown={handleKeyDown}
                                             />
-                                            <div className="absolute right-3 top-3 text-sm text-gray-500">
+                                            <div className="absolute right-3 top-3 text-sm text-gray-500 dark:text-gray-400">
                                                 {10 - blogData.tags.length} remaining
                                             </div>
                                         </div>
@@ -364,12 +364,12 @@ function AddBlog() {
                                             {blogData?.tags?.map((tag, index) => (
                                                 <div
                                                     key={index}
-                                                    className="flex items-center bg-indigo-50 text-indigo-700 rounded-full px-3 py-1 text-sm"
+                                                    className="flex items-center bg-indigo-50 dark:bg-darkbg text-indigo-700 dark:text-accent rounded-full px-3 py-1 text-sm"
                                                 >
                                                     {tag}
                                                     <button
                                                         onClick={() => deleteTag(index)}
-                                                        className="ml-1.5 text-indigo-400 hover:text-indigo-600"
+                                                        className="ml-1.5 text-indigo-400 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-accent"
                                                     >
                                                         <X className="w-4 h-4" />
                                                     </button>
@@ -383,31 +383,31 @@ function AddBlog() {
 
                         {/* Content Editor Section */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-darktext mb-2">
                                 Content
                             </label>
-                            <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                                <div id="editorjs" className="min-h-[500px] p-4 bg-white"></div>
+                            <div className="border border-gray-200 dark:border-darkbg rounded-lg overflow-hidden shadow-sm">
+                                <div id="editorjs" className="min-h-[500px] p-4 bg-white dark:bg-darkbg"></div>
                             </div>
                         </div>
 
                         {/* Footer Actions */}
-                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-200">
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-200 dark:border-darkbg">
                             <div className="flex items-center gap-3">
-                                <label className="text-sm font-medium text-gray-700">
+                                <label className="text-sm font-medium text-gray-700 dark:text-darktext">
                                     Publication Status:
                                 </label>
-                                <div className="flex bg-gray-100 p-1 rounded-lg">
+                                <div className="flex bg-gray-100 dark:bg-darkbg p-1 rounded-lg">
                                     <button
                                         onClick={() => setBlogData(prev => ({ ...prev, draft: false }))}
-                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${!blogData.draft ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'
+                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${!blogData.draft ? 'bg-white dark:bg-darkcard shadow-sm text-indigo-700 dark:text-accent' : 'text-gray-600 dark:text-darktext hover:text-gray-800 dark:hover:text-accent'
                                             }`}
                                     >
                                         Publish
                                     </button>
                                     <button
                                         onClick={() => setBlogData(prev => ({ ...prev, draft: true }))}
-                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${blogData.draft ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-600 hover:text-gray-800'
+                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${blogData.draft ? 'bg-white dark:bg-darkcard shadow-sm text-indigo-700 dark:text-accent' : 'text-gray-600 dark:text-darktext hover:text-gray-800 dark:hover:text-accent'
                                             }`}
                                     >
                                         Draft
@@ -418,7 +418,7 @@ function AddBlog() {
                             {!isLoading ? (
                                 <button
                                     onClick={id ? handleUpdateBlog : handlePostBlog}
-                                    className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white font-medium transition-colors"
+                                    className="flex items-center gap-2 px-6 py-3 bg-indigo-600 dark:bg-accent hover:bg-indigo-700 dark:hover:bg-indigo-400 rounded-lg text-white font-medium transition-colors"
                                 >
                                     <Save className="w-5 h-5" />
                                     {blogData.draft
@@ -432,7 +432,7 @@ function AddBlog() {
                             ) : (
                                 <button
                                     disabled
-                                    className="flex items-center gap-2 px-6 py-3 bg-indigo-400 rounded-lg text-white font-medium"
+                                    className="flex items-center gap-2 px-6 py-3 bg-indigo-400 dark:bg-darkbg rounded-lg text-white font-medium"
                                 >
                                     <div className="animate-spin">
                                         <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

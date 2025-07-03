@@ -81,33 +81,34 @@ function Comment({ blogId, isOpen }) {
     return (
         <div
             ref={sidebarRef}
-            className="fixed inset-y-0 right-0 w-full sm:w-96 bg-white shadow-xl z-50 flex flex-col"
+            className="fixed inset-y-0 right-0 w-full sm:w-96 bg-white dark:bg-darkbg shadow-xl z-50 flex flex-col border-l border-gray-200 dark:border-darkborder"
         >
             {/* Header */}
-            <div className="border-b border-gray-200 p-4 flex items-center justify-between bg-white sticky top-0 z-10">
+            <div className="border-b border-gray-200 dark:border-darkborder p-4 flex items-center justify-between bg-white dark:bg-darkcard sticky top-0 z-10">
                 <div className="flex items-center space-x-3">
                     <button
                         onClick={() => dispatch(setIsOpen(false))}
-                        className="p-1 rounded-full hover:bg-gray-100 text-gray-600"
+                        className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-darkbg text-gray-600 dark:text-darktext/80"
                     >
                         <ArrowLeft size={20} />
                     </button>
-                    <h1 className="text-xl font-semibold text-gray-900">
+                    <h1 className="text-xl font-semibold text-gray-900 dark:text-darktext">
                         Comments ({comments.length})
                     </h1>
                 </div>
             </div>
 
             {/* Comment Input */}
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-gray-200 dark:border-darkborder">
                 <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0">
+                        {/* Profile picture would go here */}
                     </div>
                     <div className="flex-1">
                         <textarea
                             value={comment}
                             placeholder="Write a comment..."
-                            className="w-full min-h-[80px] p-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                            className="w-full min-h-[80px] p-3 text-sm border border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent resize-none bg-white dark:bg-darkcard text-gray-800 dark:text-darktext placeholder-gray-400 dark:placeholder-darktext/70"
                             onChange={(e) => setComment(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter" && !e.shiftKey) {
@@ -120,7 +121,7 @@ function Comment({ blogId, isOpen }) {
                             <button
                                 onClick={handleComment}
                                 disabled={!comment.trim()}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${comment.trim() ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${comment.trim() ? 'bg-indigo-600 dark:bg-accent text-white hover:bg-indigo-700 dark:hover:bg-indigo-500' : 'bg-gray-200 dark:bg-darkbg text-gray-500 dark:text-darktext/70 cursor-not-allowed'}`}
                             >
                                 <Send size={16} />
                                 Post
@@ -133,8 +134,8 @@ function Comment({ blogId, isOpen }) {
             {/* Comments List */}
             <div className="flex-1 overflow-y-auto p-4">
                 {comments.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                        <MessageCircle size={48} className="mb-4 text-gray-300" />
+                    <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-darktext/70">
+                        <MessageCircle size={48} className="mb-4 text-gray-300 dark:text-darkborder" />
                         <p>No comments yet</p>
                         <p className="text-sm">Be the first to comment</p>
                     </div>
@@ -266,23 +267,23 @@ function DisplayComments({
             {comments.map((comment) => (
                 <div key={comment._id} className="group">
                     {currentEditComment === comment._id ? (
-                        <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="bg-gray-50 dark:bg-darkbg p-4 rounded-lg border border-gray-200 dark:border-darkborder">
                             <textarea
                                 defaultValue={comment.comment}
                                 placeholder="Edit your comment..."
-                                className="w-full min-h-[100px] p-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                                className="w-full min-h-[100px] p-3 text-sm border border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent resize-none bg-white dark:bg-darkcard text-gray-800 dark:text-darktext"
                                 onChange={(e) => setUpdatedCommentContent(e.target.value)}
                             />
                             <div className="flex justify-end gap-2 mt-2">
                                 <button
                                     onClick={() => setCurrentEditComment(null)}
-                                    className="px-4 py-2 text-sm rounded-lg border border-gray-300 hover:bg-gray-100"
+                                    className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-darkborder hover:bg-gray-100 dark:hover:bg-darkbg text-gray-700 dark:text-darktext"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={() => handleCommentUpdate(comment._id)}
-                                    className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                                    className="px-4 py-2 text-sm rounded-lg bg-indigo-600 dark:bg-accent text-white hover:bg-indigo-700 dark:hover:bg-indigo-500"
                                 >
                                     Update
                                 </button>
@@ -296,7 +297,7 @@ function DisplayComments({
                                     to={`/@${comment.user.username}`}
                                     className="flex-shrink-0"
                                 >
-                                    <div className="w-10 h-10 rounded-full overflow-hidden">
+                                    <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 dark:border-darkborder">
                                         <img
                                             src={
                                                 comment?.user?.profilePic
@@ -314,11 +315,11 @@ function DisplayComments({
                                         <div>
                                             <Link
                                                 to={`/@${comment.user.username}`}
-                                                className="font-medium text-sm hover:underline"
+                                                className="font-medium text-sm hover:underline text-gray-900 dark:text-darktext"
                                             >
                                                 {comment?.user?.name}
                                             </Link>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-gray-500 dark:text-darktext/70">
                                                 {formatDate(comment?.createdAt)}
                                             </p>
                                         </div>
@@ -327,16 +328,16 @@ function DisplayComments({
                                             <div className="relative">
                                                 <button
                                                     onClick={() => setCurrentPopup(currentPopup === comment._id ? null : comment._id)}
-                                                    className="p-1 rounded-full hover:bg-gray-100 text-gray-500"
+                                                    className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-darkbg text-gray-500 dark:text-darktext/80"
                                                 >
                                                     <MoreVertical size={16} />
                                                 </button>
 
                                                 {currentPopup === comment._id && (
-                                                    <div className="absolute right-0 top-6 bg-white shadow-lg rounded-md py-1 w-32 z-10 border border-gray-200">
+                                                    <div className="absolute right-0 top-6 bg-white dark:bg-darkcard shadow-lg rounded-md py-1 w-32 z-10 border border-gray-200 dark:border-darkborder">
                                                         {comment.user._id === userId && (
                                                             <button
-                                                                className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-gray-100 text-left"
+                                                                className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-darkbg text-left text-gray-700 dark:text-darktext"
                                                                 onClick={() => {
                                                                     setCurrentEditComment(comment._id);
                                                                     setCurrentPopup(null);
@@ -346,7 +347,7 @@ function DisplayComments({
                                                             </button>
                                                         )}
                                                         <button
-                                                            className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-gray-100 text-left text-red-600"
+                                                            className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-darkbg text-left text-red-600 dark:text-red-400"
                                                             onClick={() => {
                                                                 handleCommentDelete(comment._id);
                                                                 setCurrentPopup(null);
@@ -361,13 +362,13 @@ function DisplayComments({
                                     </div>
 
                                     {/* Comment Content */}
-                                    <p className="mt-1 text-sm text-gray-800">{comment.comment}</p>
+                                    <p className="mt-1 text-sm text-gray-800 dark:text-darktext">{comment.comment}</p>
 
                                     {/* Comment Actions */}
                                     <div className="flex items-center gap-4 mt-2">
                                         <button
                                             onClick={() => handleCommentLike(comment._id)}
-                                            className={`flex items-center gap-1 text-xs ${comment.likes.includes(userId) ? 'text-indigo-600' : 'text-gray-500'}`}
+                                            className={`flex items-center gap-1 text-xs ${comment.likes.includes(userId) ? 'text-indigo-600 dark:text-accent' : 'text-gray-500 dark:text-darktext/80'}`}
                                         >
                                             <ThumbsUp size={14} fill={comment.likes.includes(userId) ? 'currentColor' : 'none'} />
                                             <span>{comment.likes.length}</span>
@@ -375,7 +376,7 @@ function DisplayComments({
 
                                         <button
                                             onClick={() => handleActiveReply(comment._id)}
-                                            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+                                            className="flex items-center gap-1 text-xs text-gray-500 dark:text-darktext/80 hover:text-gray-700 dark:hover:text-accent"
                                         >
                                             <MessageCircle size={14} />
                                             <span>{comment.replies.length}</span>
@@ -384,13 +385,13 @@ function DisplayComments({
 
                                     {/* Reply Input */}
                                     {activeReply === comment._id && (
-                                        <div className="mt-3 ml-2 pl-4 border-l-2 border-gray-200">
+                                        <div className="mt-3 ml-2 pl-4 border-l-2 border-gray-200 dark:border-darkborder">
                                             <div className="flex items-start gap-2">
                                                 <div className="flex-1">
                                                     <textarea
                                                         value={reply}
                                                         placeholder="Write a reply..."
-                                                        className="w-full min-h-[60px] p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                                                        className="w-full min-h-[60px] p-2 text-sm border border-gray-300 dark:border-darkborder rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-accent focus:border-indigo-500 dark:focus:border-accent resize-none bg-white dark:bg-darkcard text-gray-800 dark:text-darktext"
                                                         onChange={(e) => setReply(e.target.value)}
                                                         onKeyDown={(e) => {
                                                             if (e.key === "Enter" && !e.shiftKey) {
@@ -402,14 +403,14 @@ function DisplayComments({
                                                     <div className="flex justify-end gap-2 mt-1">
                                                         <button
                                                             onClick={() => setActiveReply(null)}
-                                                            className="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-100"
+                                                            className="px-3 py-1 text-xs rounded-lg border border-gray-300 dark:border-darkborder hover:bg-gray-100 dark:hover:bg-darkbg text-gray-700 dark:text-darktext"
                                                         >
                                                             Cancel
                                                         </button>
                                                         <button
                                                             onClick={() => handleReply(comment._id)}
                                                             disabled={!reply.trim()}
-                                                            className={`px-3 py-1 text-xs rounded-lg ${reply.trim() ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                                                            className={`px-3 py-1 text-xs rounded-lg ${reply.trim() ? 'bg-indigo-600 dark:bg-accent text-white hover:bg-indigo-700 dark:hover:bg-indigo-500' : 'bg-gray-200 dark:bg-darkbg text-gray-500 dark:text-darktext/70 cursor-not-allowed'}`}
                                                         >
                                                             Reply
                                                         </button>
@@ -423,7 +424,7 @@ function DisplayComments({
 
                             {/* Replies */}
                             {comment.replies.length > 0 && (
-                                <div className="ml-12 mt-3 pl-3 border-l-2 border-gray-200 space-y-4">
+                                <div className="ml-12 mt-3 pl-3 border-l-2 border-gray-200 dark:border-darkborder space-y-4">
                                     <DisplayComments
                                         comments={comment.replies}
                                         userId={userId}

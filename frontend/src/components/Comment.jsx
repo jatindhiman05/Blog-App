@@ -34,6 +34,7 @@ function Comment({ blogId, isOpen }) {
     const [currentEditComment, setCurrentEditComment] = useState(null);
     const [commentToDelete, setCommentToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isPosting, setIsPosting] = useState(false);
     const sidebarRef = useRef(null);
 
     const {
@@ -65,6 +66,7 @@ function Comment({ blogId, isOpen }) {
         if (!comment.trim()) return;
 
         try {
+            setIsPosting(true);
             const res = await axios.post(
                 `${import.meta.env.VITE_BACKEND_URL}/blogs/comment/${blogId || blogIdFromStore}`,
                 { comment },
@@ -79,6 +81,8 @@ function Comment({ blogId, isOpen }) {
             dispatch(setComments(res.data.newComment));
         } catch (error) {
             toast.error(error.response.data.message);
+        } finally {
+            setIsPosting(false);
         }
     }
 
@@ -145,11 +149,20 @@ function Comment({ blogId, isOpen }) {
                         <div className="flex justify-end mt-2">
                             <button
                                 onClick={handleComment}
-                                disabled={!comment.trim()}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${comment.trim() ? 'bg-indigo-600 dark:bg-accent text-white hover:bg-indigo-700 dark:hover:bg-indigo-500' : 'bg-gray-200 dark:bg-darkbg text-gray-500 dark:text-darktext/70 cursor-not-allowed'}`}
+                                disabled={!comment.trim() || isPosting}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${comment.trim() && !isPosting ? 'bg-indigo-600 dark:bg-accent text-white hover:bg-indigo-700 dark:hover:bg-indigo-500' : 'bg-gray-200 dark:bg-darkbg text-gray-500 dark:text-darktext/70 cursor-not-allowed'}`}
                             >
-                                <Send size={16} />
-                                Post
+                                {isPosting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Posting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send size={16} />
+                                        Post
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -229,12 +242,15 @@ function DisplayComments({
 }) {
     const [reply, setReply] = useState("");
     const [updatedCommentContent, setUpdatedCommentContent] = useState("");
+    const [isReplying, setIsReplying] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
     const dispatch = useDispatch();
 
     async function handleReply(parentCommentId) {
         if (!reply.trim()) return;
 
         try {
+            setIsReplying(true);
             const res = await axios.post(
                 `${import.meta.env.VITE_BACKEND_URL}/comment/${parentCommentId}/${blogId}`,
                 { reply },
@@ -244,12 +260,13 @@ function DisplayComments({
                     },
                 }
             );
-            console.log(res);
             setReply("");
             setActiveReply(null);
             dispatch(setReplies(res.data.newReply));
         } catch (error) {
             toast.error(error.response.data.message);
+        } finally {
+            setIsReplying(false);
         }
     }
 
@@ -279,6 +296,7 @@ function DisplayComments({
         if (!updatedCommentContent.trim()) return;
 
         try {
+            setIsUpdating(true);
             const res = await axios.patch(
                 `${import.meta.env.VITE_BACKEND_URL}/blogs/edit-comment/${id}`,
                 { updatedCommentContent },
@@ -293,6 +311,7 @@ function DisplayComments({
         } catch (error) {
             toast.error(error.response.data.message);
         } finally {
+            setIsUpdating(false);
             setUpdatedCommentContent("");
             setCurrentEditComment(null);
         }
@@ -319,9 +338,17 @@ function DisplayComments({
                                 </button>
                                 <button
                                     onClick={() => handleCommentUpdate(comment._id)}
-                                    className="px-4 py-2 text-sm rounded-lg bg-indigo-600 dark:bg-accent text-white hover:bg-indigo-700 dark:hover:bg-indigo-500"
+                                    disabled={isUpdating}
+                                    className="px-4 py-2 text-sm rounded-lg bg-indigo-600 dark:bg-accent text-white hover:bg-indigo-700 dark:hover:bg-indigo-500 flex items-center justify-center gap-2"
                                 >
-                                    Update
+                                    {isUpdating ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            Updating...
+                                        </>
+                                    ) : (
+                                        "Update"
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -445,10 +472,17 @@ function DisplayComments({
                                                         </button>
                                                         <button
                                                             onClick={() => handleReply(comment._id)}
-                                                            disabled={!reply.trim()}
-                                                            className={`px-3 py-1 text-xs rounded-lg ${reply.trim() ? 'bg-indigo-600 dark:bg-accent text-white hover:bg-indigo-700 dark:hover:bg-indigo-500' : 'bg-gray-200 dark:bg-darkbg text-gray-500 dark:text-darktext/70 cursor-not-allowed'}`}
+                                                            disabled={!reply.trim() || isReplying}
+                                                            className={`px-3 py-1 text-xs rounded-lg ${reply.trim() && !isReplying ? 'bg-indigo-600 dark:bg-accent text-white hover:bg-indigo-700 dark:hover:bg-indigo-500' : 'bg-gray-200 dark:bg-darkbg text-gray-500 dark:text-darktext/70 cursor-not-allowed'}`}
                                                         >
-                                                            Reply
+                                                            {isReplying ? (
+                                                                <>
+                                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                                    Replying...
+                                                                </>
+                                                            ) : (
+                                                                "Reply"
+                                                            )}
                                                         </button>
                                                     </div>
                                                 </div>

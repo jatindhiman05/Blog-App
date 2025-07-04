@@ -12,6 +12,7 @@ import Setting from "./components/Setting";
 import AboutPage from "./components/AboutPage";
 import { useEffect } from "react";
 import { applyTheme } from "./utils/theme";
+import { ConfirmTransfer } from "./components/ConfirmTransfer";
 
 
 
@@ -42,6 +43,7 @@ function App() {
           path="/verify-email/:verificationToken"
           element={<VerifyUser />}
         />
+        <Route path="/confirm-transfer/:action/:token" element={<ConfirmTransfer />} />
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/setting" element={<Setting />} />
 

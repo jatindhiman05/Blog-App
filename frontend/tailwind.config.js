@@ -8,13 +8,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        darkbg: "#120d1d",
-        darkcard: "#1e152a",
-        darktext: "#f3f4f6",
-        accent: "#f43f5e",
-
-      },
-    },
+        darkbg: "var(--darkbg, #0f0a1a)",
+        darkcard: "var(--darkcard, #1a1030)",
+        darktext: "var(--darktext, #f8fafc)",
+        accent: "var(--accent, #e879f9)",
+      }
+    }
   },
   plugins: [],
 }

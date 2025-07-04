@@ -5,12 +5,12 @@ const {
     getAllUsers,
     getUserById,
     updateUser,
-    deleteUser,
+    deleteAccount,
     login,
     googleAuth,
     verifyEmail,
-    followUser,
-    changeSavedLikedBlog
+    followUser, changePassword,
+    changeSavedLikedBlog, transferAccount, confirmTransfer
 } = require("../controllers/userController");
 const verifyUser = require("../middlewares/auth");
 const upload = require("../utils/multer");
@@ -26,7 +26,7 @@ route.get("/users/:username", getUserById);
 
 route.patch("/users/:id", verifyUser, upload.single("profilePic"), updateUser);
 
-route.delete("/users/:id", verifyUser, deleteUser);
+route.delete("/users/:id", verifyUser, deleteAccount);
 
 // verify email/token
 
@@ -39,5 +39,11 @@ route.post("/google-auth", googleAuth);
 route.patch("/follow/:id", verifyUser, followUser);
 
 route.patch("/change-saved-liked-blog-visibility", verifyUser, changeSavedLikedBlog)
+
+// Password change route
+route.patch("/change-password", verifyUser, changePassword);
+
+route.post("/transfer-account", verifyUser, transferAccount);
+route.get("/confirm-transfer/:action/:token", confirmTransfer);
 
 module.exports = route;

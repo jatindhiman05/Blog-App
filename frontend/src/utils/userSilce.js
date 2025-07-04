@@ -10,7 +10,9 @@ const initialState =
         profilePic: null,
         followers: [],
         following: [],
+        googleAuth: false, 
     };
+
 
 const userSlice = createSlice({
     name: "userSlice",

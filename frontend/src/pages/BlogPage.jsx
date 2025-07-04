@@ -56,6 +56,7 @@ export async function handleFollowCreator(id, token, dispatch) {
 
 function BlogPage() {
     const { id } = useParams();
+    console.log(id);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 

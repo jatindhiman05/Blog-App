@@ -16,7 +16,7 @@ function usePagination(path, queryParams = {}, limit = 1, page = 1) {
                 const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/${path}`, {
                     params: { ...queryParams, limit, page },
                 });
-
+                console.log(res);
                 const blogList = Array.isArray(res?.data?.blogs) ? res.data.blogs : [];
                 setBlogs((prev) => [...prev, ...blogList]);
 
@@ -31,7 +31,7 @@ function usePagination(path, queryParams = {}, limit = 1, page = 1) {
             }
         }
         fetchSeachBlogs();
-    }, [page]);
+    }, []);
 
     return { blogs, hasMore, isLoading };
 }

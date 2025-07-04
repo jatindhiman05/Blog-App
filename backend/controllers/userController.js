@@ -25,6 +25,9 @@ const {
     EMAIL_USER,
     FRONTEND_URL,
 } = require("../config/dotenv.config");
+const Blog = require("../models/blogSchema");
+const Comment = require("../models/commentSchema");
+const { default: mongoose } = require("mongoose");
 
 admin.initializeApp({
     credential: admin.credential.cert({
@@ -214,6 +217,7 @@ async function googleAuth(req, res) {
                         showSavedBlogs: user.showSavedBlogs,
                         bio: user.bio,
                         followers: user.followers,
+                        googleAuth: user.googleAuth,
                         following: user.following,
                         token,
                     },
@@ -255,6 +259,7 @@ async function googleAuth(req, res) {
                 bio: newUser.bio,
                 followers: newUser.followers,
                 following: newUser.following,
+                googleAuth: newUser.googleAuth,
                 token,
             },
         });
@@ -359,6 +364,7 @@ async function login(req, res) {
                 showSavedBlogs: checkForexistingUser.showSavedBlogs,
                 followers: checkForexistingUser.followers,
                 following: checkForexistingUser.following,
+                googleAuth: checkForexistingUser.googleAuth,
                 token,
             },
         });
@@ -504,32 +510,105 @@ async function updateUser(req, res) {
 }
 
 
-async function deleteUser(req, res) {
+async function deleteAccount(req, res) {
     try {
-        const id = req.params.id;
+        const userId = req.user;
+        const { currentPassword, googleAuth } = req.body;
 
-        const deletedUser = await User.findByIdAndDelete(id);
-
-        if (!deletedUser) {
-            return res.status(200).json({
+        // 1. Get user and verify credentials
+        const user = await User.findById(userId).select(googleAuth ? "" : "+password");
+        if (!user) {
+            return res.status(404).json({
                 success: false,
-                message: "User not found",
+                message: "User not found"
             });
         }
 
+        // 2. Verify password for non-Google accounts
+        if (!googleAuth) {
+            if (!currentPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Current password is required"
+                });
+            }
+            const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+            if (!isPasswordValid) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Current password is incorrect"
+                });
+            }
+        }
+
+        // 3. Delete user's blogs
+        await Blog.deleteMany({ creator: userId });
+
+        // 4. Delete all comments by user
+        await Comment.deleteMany({ user: userId });
+
+        // 5. Remove user's likes from comments
+        await Comment.updateMany(
+            { likes: userId },
+            { $pull: { likes: userId } }
+        );
+
+        // 6. Remove user from followers' lists
+        await User.updateMany(
+            { followers: userId },
+            { $pull: { followers: userId } }
+        );
+
+        // 7. Remove user from users they were following
+        await User.updateMany(
+            { _id: { $in: user.following } },
+            { $pull: { followers: userId } }
+        );
+
+        // 8. Remove user's likes from blogs
+        await Blog.updateMany(
+            { likes: userId },
+            { $pull: { likes: userId } }
+        );
+
+        // 9. Remove user's saves from blogs
+        await Blog.updateMany(
+            { savedBy: userId },
+            { $pull: { savedBy: userId } }
+        );
+
+        // 10. Delete profile picture if exists
+        if (user.profilePicId) {
+            await deleteImagefromCloudinary(user.profilePicId);
+        }
+
+        // 11. Finally delete the user account
+        await User.findByIdAndDelete(userId);
+
+        // 12. Send confirmation email
+        await transporter.sendMail({
+            from: EMAIL_USER,
+            to: user.email,
+            subject: "Account Deletion Confirmation",
+            html: `<h1>Account Deleted</h1>
+                   <p>Your account has been successfully deleted.</p>
+                   <p>We're sorry to see you go.</p>`
+        });
+
         return res.status(200).json({
             success: true,
-            message: "User deleted successfully",
-            deletedUser,
+            message: "Account and all associated data deleted successfully"
         });
-    } catch (err) {
+
+    } catch (error) {
+        console.error("Account deletion error:", error);
         return res.status(500).json({
             success: false,
-            message: "Please try again",
+            message: "Failed to delete account",
+            error: error.message
         });
     }
 }
-
 async function followUser(req, res) {
     try {
         const followerId = req.user;
@@ -614,15 +693,391 @@ async function changeSavedLikedBlog(req, res) {
     }
 }
 
+async function changePassword(req, res) {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user; // From auth middleware
+
+        // Validate input
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Both current and new password are required",
+            });
+        }
+
+        // Get user with password
+        const user = await User.findById(userId).select("+password");
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        // Verify current password
+        const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: "Current password is incorrect",
+            });
+        }
+
+        // Validate new password
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 6 characters",
+            });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password and generate new token
+        user.password = hashedPassword;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully",
+        });
+    } catch (error) {
+        console.error("Password change error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password",
+            error: error.message,
+        });
+    }
+  }
+
+
+async function transferAccount(req, res) {
+    try {
+        const { currentPassword, newOwnerEmail } = req.body;
+        const currentUserId = req.user;
+        const isGoogleAuth = req.body.googleAuth || false;
+
+        // Validate input
+        if (!newOwnerEmail) {
+            return res.status(400).json({
+                success: false,
+                message: "New owner email is required",
+            });
+        }
+
+        // Get current user
+        const currentUser = await User.findById(currentUserId);
+        if (!currentUser) {
+            return res.status(404).json({
+                success: false,
+                message: "Current user not found",
+            });
+        }
+
+        // For non-Google auth users, verify password
+        if (!isGoogleAuth) {
+            if (!currentPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Current password is required",
+                });
+            }
+
+            const userWithPassword = await User.findById(currentUserId).select('+password');
+            const isPasswordValid = await bcrypt.compare(currentPassword, userWithPassword.password);
+            if (!isPasswordValid) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Current password is incorrect",
+                });
+            }
+        }
+
+        // Check if transferring to self
+        if (currentUser.email === newOwnerEmail) {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot transfer account to yourself",
+            });
+        }
+
+        // Find new owner user
+        const newOwner = await User.findOne({ email: newOwnerEmail });
+        if (!newOwner) {
+            return res.status(404).json({
+                success: false,
+                message: "New owner not found with that email",
+            });
+        }
+
+        // Check if new owner has the same username (would cause conflict)
+        if (currentUser.username === newOwner.username) {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot transfer to user with same username - would cause conflicts",
+            });
+        }
+
+        // Generate transfer token with more metadata
+        const transferToken = await generateJWT({
+            currentUserId: currentUser._id,
+            currentUserEmail: currentUser.email,
+            newOwnerId: newOwner._id,
+            newOwnerEmail: newOwner.email,
+            action: 'account-transfer',
+            timestamp: Date.now()
+        }, '1d'); // Token expires in 1 day
+
+        // Send confirmation email to new owner
+        await transporter.sendMail({
+            from: EMAIL_USER,
+            to: newOwnerEmail,
+            subject: "Account Transfer Request",
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h1 style="color: #333;">Account Transfer Request</h1>
+                    <p style="font-size: 16px;">${currentUser.name} (${currentUser.email}) wants to transfer their account to you.</p>
+                    <p style="font-size: 16px;">This will give you ownership of:</p>
+                    <ul style="font-size: 16px;">
+                        <li>All their blogs (${await Blog.countDocuments({ creator: currentUserId })} posts)</li>
+                        <li>All their comments</li>
+                        <li>Their followers and following relationships</li>
+                    </ul>
+                    <div style="margin: 30px 0; text-align: center;">
+                        <a href="${FRONTEND_URL}/confirm-transfer/accept/${transferToken}" 
+                           style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-right: 15px; font-weight: bold;">
+                            Accept Transfer
+                        </a>
+                        <a href="${FRONTEND_URL}/confirm-transfer/reject/${transferToken}" 
+                           style="background-color: #f44336; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                            Reject Transfer
+                        </a>
+                    </div>
+                    <p style="font-size: 14px; color: #666;">
+                        If you didn't request this, please reject the transfer or ignore this email.
+                        This link will expire in 24 hours.
+                    </p>
+                </div>
+            `,
+        });
+
+        // Also notify current user that request was sent
+        await transporter.sendMail({
+            from: EMAIL_USER,
+            to: currentUser.email,
+            subject: "Transfer Request Sent",
+            html: `
+                <p>You've requested to transfer your account to ${newOwner.email}.</p>
+                <p>They've been notified and must accept the transfer for it to complete.</p>
+                <p>You'll receive another email once the transfer is completed or rejected.</p>
+            `
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Transfer request sent. The recipient must confirm the transfer.",
+            data: {
+                newOwnerEmail,
+                newOwnerName: newOwner.name
+            }
+        });
+    } catch (error) {
+        console.error("Account transfer error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to initiate transfer",
+            error: error.message,
+        });
+    }
+}
+
+async function confirmTransfer(req, res) {
+    try {
+        const { action, token } = req.params;
+
+        // Verify the transfer token
+        const decoded = await verifyJWT(token);
+        if (!decoded || decoded.action !== 'account-transfer') {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired transfer token",
+            });
+        }
+
+        const { currentUserId, newOwnerId, currentUserEmail, newOwnerEmail } = decoded;
+
+        if (action === 'reject') {
+            // Notify the original owner that the transfer was rejected
+            const currentUser = await User.findById(currentUserId);
+            if (currentUser) {
+                await transporter.sendMail({
+                    from: EMAIL_USER,
+                    to: currentUser.email,
+                    subject: "Transfer Rejected",
+                    html: `
+                        <p>The recipient (${newOwnerEmail}) has rejected your account transfer request.</p>
+                        <p>Your account remains unchanged.</p>
+                    `
+                });
+            }
+
+            // Also notify the rejecting user
+            await transporter.sendMail({
+                from: EMAIL_USER,
+                to: newOwnerEmail,
+                subject: "Transfer Rejected",
+                html: `
+                    <p>You've rejected the account transfer request from ${currentUserEmail}.</p>
+                    <p>No changes have been made to either account.</p>
+                `
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: "Transfer rejected successfully",
+            });
+        }
+
+        // Proceed with the transfer
+        const currentUser = await User.findById(currentUserId);
+        const newOwner = await User.findById(newOwnerId);
+
+        if (!currentUser || !newOwner) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found - one of the accounts may have been deleted",
+            });
+        }
+
+        // Start a transaction to ensure data consistency
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+            // 1. Transfer all blogs
+            await Blog.updateMany(
+                { creator: currentUserId },
+                { $set: { creator: newOwner._id } },
+                { session }
+            );
+
+            // 2. Transfer all comments
+            await Comment.updateMany(
+                { user: currentUserId },
+                { $set: { user: newOwner._id } },
+                { session }
+            );
+
+            // 3. Handle followers
+            // Remove current user from followers' lists
+            await User.updateMany(
+                { followers: currentUserId },
+                { $pull: { followers: currentUserId } },
+                { session }
+            );
+
+            // Add new owner to those same users' followers lists
+            await User.updateMany(
+                { _id: { $in: currentUser.followers } },
+                { $addToSet: { followers: newOwner._id } },
+                { session }
+            );
+
+            // 4. Handle following relationships
+            await User.updateMany(
+                { _id: { $in: currentUser.following } },
+                { $addToSet: { followers: newOwner._id } },
+                { session }
+            );
+
+            // 5. Transfer saved/liked blogs references
+            await User.findByIdAndUpdate(
+                newOwner._id,
+                {
+                    $addToSet: {
+                        saveBlogs: { $each: currentUser.saveBlogs },
+                        likeBlogs: { $each: currentUser.likeBlogs }
+                    }
+                },
+                { session }
+            );
+
+            // 6. Delete the current user account
+            await User.findByIdAndDelete(currentUserId, { session });
+
+            // 7. Commit the transaction
+            await session.commitTransaction();
+
+            // Send success notifications
+            await transporter.sendMail({
+                from: EMAIL_USER,
+                to: currentUser.email,
+                subject: "Account Transfer Completed",
+                html: `
+                    <p>Your account has been successfully transferred to ${newOwner.name} (${newOwner.email}).</p>
+                    <p>All your content is now owned by them.</p>
+                    <p>You can no longer access this account.</p>
+                `
+            });
+
+            await transporter.sendMail({
+                from: EMAIL_USER,
+                to: newOwner.email,
+                subject: "Account Transfer Completed",
+                html: `
+                    <h2>Transfer Complete</h2>
+                    <p>You've accepted the account transfer from ${currentUser.name} (${currentUser.email}).</p>
+                    <p>You now own:</p>
+                    <ul>
+                        <li>${await Blog.countDocuments({ creator: newOwner._id })} blog posts</li>
+                        <li>${await Comment.countDocuments({ user: newOwner._id })} comments</li>
+                        <li>${currentUser.followers.length} followers</li>
+                    </ul>
+                    <p>You may want to review the transferred content.</p>
+                `
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: "Account transferred successfully",
+                data: {
+                    transferredBlogs: await Blog.countDocuments({ creator: newOwner._id }),
+                    transferredComments: await Comment.countDocuments({ user: newOwner._id }),
+                    transferredFollowers: currentUser.followers.length
+                }
+            });
+
+        } catch (transactionError) {
+            await session.abortTransaction();
+            console.error("Transfer transaction failed:", transactionError);
+            throw transactionError;
+        } finally {
+            session.endSession();
+        }
+
+    } catch (error) {
+        console.error("Transfer confirmation error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to process transfer",
+            error: error.message,
+        });
+    }
+}
+
 module.exports = {
     createUser,
     getAllUsers,
     getUserById,
     updateUser,
-    deleteUser,
+    deleteAccount,
     login,
     verifyEmail,
     googleAuth,
     followUser,
     changeSavedLikedBlog,
+    changePassword, transferAccount, confirmTransfer
 };

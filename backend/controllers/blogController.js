@@ -1,7 +1,8 @@
 const Blog = require("../models/blogSchema");
 const Comment = require("../models/commentSchema");
 const User = require("../models/userSchema");
-const ShortUniqueId = require("short-unique-id");
+const ShortUniqueId = require("short-unique-id"); 
+const sendNotification = require("../utils/sendNotification");
 const { randomUUID } = new ShortUniqueId({ length: 10 });
 const {
     uploadImage,
@@ -9,97 +10,92 @@ const {
 } = require("../utils/uploadImage");
 
 // safe controllers
-
 async function createBlog(req, res) {
     try {
         const creator = req.user;
-
         const { title, description } = req.body;
-        const draft = req.body.draft == "false" ? false : true;
+        const draft = req.body.draft === "false" ? false : true;
         const { image, images } = req.files;
 
         const content = JSON.parse(req.body.content);
         const tags = JSON.parse(req.body.tags);
 
-        if (!title) {
+        if (!title || !description || !content) {
             return res.status(400).json({
-                message: "Please fill title field",
+                message: "Title, description, and content are required.",
             });
         }
 
-        if (!description) {
-            return res.status(400).json({
-                message: "Please fill description field",
-            });
-        }
-
-        if (!content) {
-            return res.status(400).json({
-                message: "Please add some content",
-            });
-        }
-
-        //cloudinary wali prikriya shuru karo
-
+        // Upload embedded images from content
         let imageIndex = 0;
-
         for (let i = 0; i < content.blocks.length; i++) {
             const block = content.blocks[i];
             if (block.type === "image") {
                 const { secure_url, public_id } = await uploadImage(
-                    `data:image/jpeg;base64,${images[imageIndex].buffer.toString(
-                        "base64"
-                    )}`
+                    `data:image/jpeg;base64,${images[imageIndex].buffer.toString("base64")}`
                 );
 
                 block.data.file = {
                     url: secure_url,
                     imageId: public_id,
                 };
-
                 imageIndex++;
             }
         }
 
+        // Upload main blog image
         const { secure_url, public_id } = await uploadImage(
             `data:image/jpeg;base64,${image[0].buffer.toString("base64")}`
         );
 
-        const blogId =
-            title.toLowerCase().split(" ").join("-") + "-" + randomUUID();
-        // const blogId = title.toLowerCase().replace(/ +/g, '-')
+        const blogId = title.toLowerCase().split(" ").join("-") + "-" + randomUUID();
 
         const blog = await Blog.create({
-            description,
             title,
+            description,
+            content,
             draft,
             creator,
             image: secure_url,
             imageId: public_id,
             blogId,
-            content,
             tags,
         });
 
         await User.findByIdAndUpdate(creator, { $push: { blogs: blog._id } });
 
-        if (draft) {
-            return res.status(200).json({
-                message: "Blog Saved as Draft. You can public it from your profile",
-                blog,
-            });
+        if (!draft) {
+            const user = await User.findById(creator).select("followers name");
+            const followers = user.followers || [];
+
+            for (const followerId of followers) {
+                await sendNotification({
+                    req,
+                    recipientId: followerId,
+                    senderId: creator,
+                    type: "custom",
+                    blogId: blog._id,
+                    message: `${user.name} posted a new blog`,
+                });
+            }
         }
 
         return res.status(200).json({
-            message: "Blog created Successfully",
+            message: draft
+                ? "Blog saved as draft. You can publish it from your profile."
+                : "Blog created successfully.",
             blog,
         });
     } catch (error) {
+        console.error("Blog creation error:", error);
         return res.status(500).json({
-            message: error.message,
+            message: "Failed to create blog",
+            error: error.message,
         });
     }
 }
+
+module.exports = createBlog;
 
 async function getBlogs(req, res) {
     try {
@@ -193,11 +189,8 @@ async function getBlog(req, res) {
 async function updateBlog(req, res) {
     try {
         const creator = req.user;
-
         const { id } = req.params;
-
         const { title, description } = req.body;
-
         const draft = req.body.draft == "false" ? false : true;
 
         const content = JSON.parse(req.body.content);
@@ -207,17 +200,18 @@ async function updateBlog(req, res) {
         const blog = await Blog.findOne({ blogId: id });
 
         if (!blog) {
-            return res.status(500).json({
-                message: "Blog is not found",
+            return res.status(404).json({
+                message: "Blog not found",
             });
         }
 
-        if (!(creator == blog.creator)) {
-            return res.status(500).json({
-                message: "You are not authorized for this action",
+        if (creator.toString() !== blog.creator.toString()) {
+            return res.status(403).json({
+                message: "You are not authorized to update this blog",
             });
         }
 
+        // Identify images to delete
         let imagesToDelete = blog.content.blocks
             .filter((block) => block.type == "image")
             .filter(
@@ -225,12 +219,7 @@ async function updateBlog(req, res) {
             )
             .map((block) => block.data.file.imageId);
 
-        // if (imagesToDelete.length > 0) {
-        //   await Promise.all(
-        //     imagesToDelete.map((id) => deleteImagefromCloudinary(id))
-        //   );
-        // }
-
+        // Upload new embedded images
         if (req.files.images) {
             let imageIndex = 0;
 
@@ -253,26 +242,17 @@ async function updateBlog(req, res) {
             }
         }
 
-        // const updatedBlog = await Blog.updateOne(
-        //   { _id: id },
-        //   {
-        //     title,
-        //     description,
-        //     draft,
-        //   }
-        // );
-
+        // Replace cover image if new one provided
         if (req?.files?.image) {
             await deleteImagefromCloudinary(blog.imageId);
             const { secure_url, public_id } = await uploadImage(
-                `data:image/jpeg;base64,${req?.files?.image[0]?.buffer?.toString(
-                    "base64"
-                )}`
+                `data:image/jpeg;base64,${req.files.image[0].buffer.toString("base64")}`
             );
             blog.image = secure_url;
             blog.imageId = public_id;
         }
 
+        // Update blog fields
         blog.title = title || blog.title;
         blog.description = description || blog.description;
         blog.draft = draft;
@@ -283,9 +263,23 @@ async function updateBlog(req, res) {
 
         if (draft) {
             return res.status(200).json({
-                message:
-                    "Blog Saved as Draft. You can again public it from your profile page",
+                message: "Blog saved as draft. You can publish it later.",
                 blog,
+            });
+        }
+
+        // Notify followers if blog is updated and published
+        const user = await User.findById(creator).select("followers name");
+        const followers = user.followers || [];
+
+        for (const followerId of followers) {
+            await sendNotification({
+                req,
+                recipientId: followerId,
+                senderId: creator,
+                type: "custom",
+                blogId: blog._id,
+                message: `${user.name} updated their blog: ${blog.title}`,
             });
         }
 
@@ -295,12 +289,13 @@ async function updateBlog(req, res) {
             blog,
         });
     } catch (error) {
-        console.log(error);
+        console.log("Update Blog Error:", error);
         return res.status(500).json({
             message: error.message,
         });
     }
 }
+
 
 async function deleteBlog(req, res) {
     try {
@@ -339,40 +334,60 @@ async function deleteBlog(req, res) {
 
 async function likeBlog(req, res) {
     try {
-        const user = req.user;
-        const { id } = req.params;
+        const userId = req.user;
+        const { id: blogId } = req.params;
 
-        const blog = await Blog.findById(id);
+        const blog = await Blog.findById(blogId).populate("creator", "_id name");
 
         if (!blog) {
-            return res.status(500).json({
-                message: "Blog is not found",
+            return res.status(404).json({
+                message: "Blog not found",
             });
         }
 
-        if (!blog.likes.includes(user)) {
-            await Blog.findByIdAndUpdate(id, { $push: { likes: user } });
-            await User.findByIdAndUpdate(user, { $push: { likeBlogs: id } });
+        const alreadyLiked = blog.likes.includes(userId);
+
+        if (!alreadyLiked) {
+            // Like the blog
+            await Blog.findByIdAndUpdate(blogId, { $push: { likes: userId } });
+            await User.findByIdAndUpdate(userId, { $push: { likeBlogs: blogId } });
+
+            // Send notification (if not liking own blog)
+            if (userId.toString() !== blog.creator._id.toString()) {
+                await sendNotification({
+                    req,
+                    recipientId: blog.creator._id,
+                    senderId: userId,
+                    type: "like",
+                    blogId: blog._id,
+                    message: `liked your blog "${blog.title}"`,
+                });
+            }
+
             return res.status(200).json({
                 success: true,
-                message: "Blog Liked successfully",
+                message: "Blog liked successfully",
                 isLiked: true,
             });
         } else {
-            await Blog.findByIdAndUpdate(id, { $pull: { likes: user } });
-            await User.findByIdAndUpdate(user, { $pull: { likeBlogs: id } });
+            // Unlike the blog
+            await Blog.findByIdAndUpdate(blogId, { $pull: { likes: userId } });
+            await User.findByIdAndUpdate(userId, { $pull: { likeBlogs: blogId } });
+
             return res.status(200).json({
                 success: true,
-                message: "Blog DisLiked successfully",
+                message: "Blog unliked successfully",
                 isLiked: false,
             });
         }
     } catch (error) {
+        console.error("Error liking blog:", error);
         return res.status(500).json({
             message: error.message,
         });
     }
 }
+
 
 async function saveBlog(req, res) {
     try {

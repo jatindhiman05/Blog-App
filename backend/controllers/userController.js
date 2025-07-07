@@ -2,6 +2,7 @@ const User = require("../models/userSchema");
 const bcrypt = require("bcrypt");
 const { generateJWT, verifyJWT } = require("../utils/generateToken");
 const transporter = require("../utils/transporter");
+const sendNotification = require("../utils/sendNotification");
 const ShortUniqueId = require("short-unique-id");
 const { randomUUID } = new ShortUniqueId({ length: 5 });
 const admin = require("firebase-admin");
@@ -612,60 +613,71 @@ async function deleteAccount(req, res) {
 async function followUser(req, res) {
     try {
         const followerId = req.user;
-        const { id } = req.params;
+        const { id: userIdToFollow } = req.params;
 
-        if (followerId === id) {
+        if (followerId === userIdToFollow) {
             return res.status(400).json({
                 message: "You cannot follow yourself.",
             });
         }
 
-        const user = await User.findById(id);
+        const userToFollow = await User.findById(userIdToFollow);
         const follower = await User.findById(followerId);
 
-        if (!user || !follower) {
+        if (!userToFollow || !follower) {
             return res.status(404).json({
                 message: "User not found.",
             });
         }
 
-        const isFollowing = user.followers.includes(followerId);
+        const isAlreadyFollowing = userToFollow.followers.includes(followerId);
 
-        if (!isFollowing) {
-            await User.findByIdAndUpdate(id, {
+        if (!isAlreadyFollowing) {
+            await User.findByIdAndUpdate(userIdToFollow, {
                 $addToSet: { followers: followerId },
             });
 
             await User.findByIdAndUpdate(followerId, {
-                $addToSet: { following: id },
+                $addToSet: { following: userIdToFollow },
+            });
+
+            // Send follow notification
+            await sendNotification({
+                req,
+                recipientId: userToFollow._id,
+                senderId: followerId,
+                type: "follow",
+                message: "started following you",
             });
 
             return res.status(200).json({
                 success: true,
                 message: "Followed successfully",
-                following: true
+                following: true,
             });
         } else {
-            await User.findByIdAndUpdate(id, {
+            await User.findByIdAndUpdate(userIdToFollow, {
                 $pull: { followers: followerId },
             });
 
             await User.findByIdAndUpdate(followerId, {
-                $pull: { following: id },
+                $pull: { following: userIdToFollow },
             });
 
             return res.status(200).json({
                 success: true,
                 message: "Unfollowed successfully",
-                following : false
+                following: false,
             });
         }
     } catch (error) {
+        console.error("followUser error:", error);
         return res.status(500).json({
             message: error.message,
         });
     }
 }
+
 
 async function changeSavedLikedBlog(req, res) {
     try {
@@ -696,9 +708,8 @@ async function changeSavedLikedBlog(req, res) {
 async function changePassword(req, res) {
     try {
         const { currentPassword, newPassword } = req.body;
-        const userId = req.user; // From auth middleware
+        const userId = req.user;
 
-        // Validate input
         if (!currentPassword || !newPassword) {
             return res.status(400).json({
                 success: false,
@@ -706,7 +717,6 @@ async function changePassword(req, res) {
             });
         }
 
-        // Get user with password
         const user = await User.findById(userId).select("+password");
         if (!user) {
             return res.status(404).json({
@@ -715,7 +725,6 @@ async function changePassword(req, res) {
             });
         }
 
-        // Verify current password
         const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({
@@ -724,7 +733,6 @@ async function changePassword(req, res) {
             });
         }
 
-        // Validate new password
         if (newPassword.length < 6) {
             return res.status(400).json({
                 success: false,
@@ -732,12 +740,18 @@ async function changePassword(req, res) {
             });
         }
 
-        // Hash new password
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        // Update password and generate new token
         user.password = hashedPassword;
         await user.save();
+
+        // Send password change notification (to self)
+        await sendNotification({
+            req,
+            recipientId: userId,
+            senderId: userId,
+            type: "custom",
+            message: "Your password was changed successfully.",
+        });
 
         return res.status(200).json({
             success: true,
@@ -751,8 +765,7 @@ async function changePassword(req, res) {
             error: error.message,
         });
     }
-  }
-
+}
 
 async function transferAccount(req, res) {
     try {

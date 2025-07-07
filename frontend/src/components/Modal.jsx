@@ -55,12 +55,12 @@ function Modal({
                 onClick={onClose}
             ></div>
 
-            {/* Modal container with scale animation */}
-            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            {/* Modal container with centered positioning */}
+            <div className="fixed inset-0 flex items-center justify-center p-4">
                 <div
-                    className={`inline-block align-bottom bg-white dark:bg-darkcard rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:w-full ${maxWidth} ${isVisible
-                            ? "translate-y-0 opacity-100 scale-100"
-                            : "translate-y-4 opacity-0 scale-95"
+                    className={`bg-white dark:bg-darkcard rounded-xl text-left overflow-hidden shadow-2xl transform transition-all w-full ${maxWidth} ${isVisible
+                        ? "translate-y-0 opacity-100 scale-100"
+                        : "translate-y-4 opacity-0 scale-95"
                         }`}
                     style={{ transition: "all 300ms cubic-bezier(0.4, 0, 0.2, 1)" }}
                     onClick={(e) => e.stopPropagation()}

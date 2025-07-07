@@ -9,7 +9,7 @@ import {
     setReplies,
     setUpdatedComments,
 } from "../utils/selectedBlogSlice";
-import { formatDate } from "../utils/formatDate";
+import { formatDate, smartFormatDate } from "../utils/formatDate";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import {
@@ -375,14 +375,17 @@ function DisplayComments({
 
                                 <div className="flex-1">
                                     <div className="flex items-center justify-between">
-                                        <div>
-                                            <Link
+                                            <div className="flex items-center gap-2">
+                                                <Link
                                                     to={`/@${comment?.user?.username}`}
-                                                className="font-medium text-sm hover:underline text-gray-900 dark:text-darktext"
-                                            >
-                                                {comment?.user?.name}
-                                            </Link>
-                                        </div>
+                                                    className="font-medium text-sm hover:underline text-gray-900 dark:text-darktext"
+                                                >
+                                                    {comment?.user?.name}
+                                                </Link>
+                                                <span className="text-xs text-gray-500 dark:text-darktext/60">
+                                                    {smartFormatDate(comment.createdAt)}
+                                                </span>
+                                            </div>
 
                                         {(comment?.user?._id === userId || userId === creatorId) && (
                                             <div className="relative">

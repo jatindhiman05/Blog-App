@@ -11,22 +11,127 @@ import {
     Menu,
     X,
     ChevronDown,
-    Loader2
+    Loader2,
+    Bell,
+    BellDot,
+    Check,
+    CheckCircle,
+    Moon,
+    Sun
 } from "lucide-react";
+import { io } from "socket.io-client";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
-    const { token, name, profilePic, username } = useSelector(
+    const { token, name, profilePic, username, id: userId } = useSelector(
         (state) => state.user
     );
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const popupRef = useRef(null);
+    const notificationRef = useRef(null);
 
     const [showPopup, setShowPopup] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [showSearchBar, setShowSearchBar] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [socket, setSocket] = useState(null);
+    const [loadingNotifications, setLoadingNotifications] = useState(false);
+    const [darkMode, setDarkMode] = useState(localStorage.getItem("theme") === "dark");
+
+    // Initialize socket connection
+    useEffect(() => {
+        if (token && userId) {
+            const newSocket = io(import.meta.env.VITE_BACKEND_SOCKET_URL, {
+                auth: { token },
+                transports: ["websocket"],
+            });
+            console.log(newSocket)
+            setSocket(newSocket);
+
+            return () => newSocket.disconnect();
+        }
+    }, [token, userId]);
+
+    // Toggle dark mode
+    const toggleDarkMode = () => {
+        const newDarkMode = !darkMode;
+        setDarkMode(newDarkMode);
+        localStorage.setItem("theme", newDarkMode ? "dark" : "light");
+
+        // Apply the theme change
+        if (newDarkMode) {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
+    };
+
+    // Initialize theme on component mount
+    useEffect(() => {
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+            setDarkMode(true);
+            document.documentElement.classList.add("dark");
+        }
+    }, []);
+
+    // Socket event listeners
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on("connect", () => {
+            console.log("Connected to socket");
+            socket.emit("register", userId);
+        });
+
+        socket.on("newNotification", (notification) => {
+            setNotifications(prev => [notification, ...prev]);
+            setUnreadCount(prev => prev + 1);
+        });
+
+        socket.on("unreadCountUpdate", (count) => {
+            setUnreadCount(count);
+        });
+
+        return () => {
+            socket.off("connect");
+            socket.off("newNotification");
+            socket.off("unreadCountUpdate");
+        };
+    }, [socket, userId]);
+
+    // Fetch initial notifications
+    useEffect(() => {
+        if (!token) return;
+
+        const fetchNotifications = async () => {
+            try {
+                setLoadingNotifications(true);
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/notifications?limit=4`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                const data = await response.json();
+                if (data.success) {
+                    setNotifications(data.notifications);
+                    setUnreadCount(data.unreadCount);
+                }
+            } catch (error) {
+                toast.error(error.response?.data?.message)
+                console.error("Error fetching notifications:", error);
+            } finally {
+                setLoadingNotifications(false);
+            }
+        };
+
+        fetchNotifications();
+    }, [token]);
 
     const handleLogout = () => {
         setIsLoggingOut(true);
@@ -38,6 +143,47 @@ const Navbar = () => {
             navigate('/');
             window.location.reload();
         }, 1000);
+    };
+
+    const markAllAsRead = async () => {
+        try {
+            await fetch(`${import.meta.env.VITE_BACKEND_URL}/notifications/mark-read`, {
+                method: "PATCH",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setUnreadCount(0);
+            setNotifications(prev =>
+                prev.map(n => ({ ...n, isRead: true }))
+            );
+            toast.success('All are Marked Read Successfully')
+        } catch (error) {
+            toast.error(error.response?.data?.message)
+            console.error("Error marking notifications as read:", error);
+        }
+    };
+
+    const markSingleAsRead = async (notificationId, e) => {
+        e.stopPropagation(); // Prevent triggering the parent onClick
+        try {
+            await fetch(`${import.meta.env.VITE_BACKEND_URL}/notifications/${notificationId}/read`, {
+                method: "PATCH",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setUnreadCount(prev => Math.max(0, prev - 1));
+            setNotifications(prev =>
+                prev.map(n =>
+                    n._id === notificationId ? { ...n, isRead: true } : n
+                )
+            );
+            toast.success('Marked Read Successfully')
+        } catch (error) {
+            toast.error(error.response?.data?.message)
+            console.error("Error marking notification as read:", error);
+        }
     };
 
     useEffect(() => {
@@ -54,9 +200,16 @@ const Navbar = () => {
                     setShowPopup(false);
                 }
             }
+
+            if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+                const notificationButton = document.querySelector('.notification-button');
+                if (!notificationButton || !notificationButton.contains(event.target)) {
+                    setShowNotifications(false);
+                }
+            }
         }
 
-        if (showPopup) {
+        if (showPopup || showNotifications) {
             document.addEventListener('mousedown', handleClickOutside);
         } else {
             document.removeEventListener('mousedown', handleClickOutside);
@@ -65,7 +218,41 @@ const Navbar = () => {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [showPopup]);
+    }, [showPopup, showNotifications]);
+
+    const formatTimeAgo = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const seconds = Math.floor((now - date) / 1000);
+
+        let interval = Math.floor(seconds / 31536000);
+        if (interval >= 1) return `${interval}y ago`;
+
+        interval = Math.floor(seconds / 2592000);
+        if (interval >= 1) return `${interval}mo ago`;
+
+        interval = Math.floor(seconds / 86400);
+        if (interval >= 1) return `${interval}d ago`;
+
+        interval = Math.floor(seconds / 3600);
+        if (interval >= 1) return `${interval}h ago`;
+
+        interval = Math.floor(seconds / 60);
+        if (interval >= 1) return `${interval}m ago`;
+
+        return 'Just now';
+    };
+
+    const notificationIcon = unreadCount > 0 ? (
+        <div className="relative">
+            <BellDot className="h-5 w-5 text-indigo-600 dark:text-accent" />
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+        </div>
+    ) : (
+        <Bell className="h-5 w-5 text-gray-600 dark:text-darktext/80" />
+    );
 
     return (
         <>
@@ -111,6 +298,14 @@ const Navbar = () => {
                         >
                             <Search size={20} />
                         </button>
+                        {token && (
+                            <button
+                                onClick={() => setShowNotifications(!showNotifications)}
+                                className="text-gray-600 dark:text-darktext/80 hover:text-indigo-600 dark:hover:text-accent p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-darkbg transition-colors notification-button"
+                            >
+                                {notificationIcon}
+                            </button>
+                        )}
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             className="text-gray-600 dark:text-darktext/80 hover:text-indigo-600 dark:hover:text-accent p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-darkbg transition-colors"
@@ -121,6 +316,19 @@ const Navbar = () => {
 
                     {/* Desktop Navigation and Auth Buttons */}
                     <div className="hidden md:flex items-center gap-3">
+                        {/* Dark mode toggle button */}
+                        <button
+                            onClick={toggleDarkMode}
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-darkbg transition-colors"
+                            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+                        >
+                            {darkMode ? (
+                                <Sun className="h-5 w-5 text-gray-600 dark:text-yellow-400" />
+                            ) : (
+                                <Moon className="h-5 w-5 text-gray-600 dark:text-darktext/80" />
+                            )}
+                        </button>
+
                         {token ? (
                             <>
                                 <Link
@@ -130,6 +338,13 @@ const Navbar = () => {
                                     <PenSquare size={16} />
                                     <span>Write</span>
                                 </Link>
+
+                                <button
+                                    onClick={() => setShowNotifications(!showNotifications)}
+                                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-darkbg transition-colors relative notification-button"
+                                >
+                                    {notificationIcon}
+                                </button>
 
                                 <div className="relative ml-2" ref={popupRef}>
                                     <button
@@ -204,6 +419,94 @@ const Navbar = () => {
                         )}
                     </div>
                 </div>
+                {showNotifications && (
+                    <div
+                        className="absolute right-4 md:right-8 top-16 w-80 md:w-96 bg-white dark:bg-darkcard rounded-lg shadow-lg border border-gray-200 dark:border-darkborder overflow-hidden z-50 max-h-[80vh] overflow-y-auto"
+                        ref={notificationRef}
+                    >
+                        <div className="px-4 py-3 border-b border-gray-200 dark:border-darkborder flex justify-between items-center">
+                            <h3 className="font-medium text-gray-900 dark:text-darktext">Notifications</h3>
+                            <div className="flex gap-2">
+                                {unreadCount > 0 && (
+                                    <button
+                                        onClick={markAllAsRead}
+                                        className="text-sm text-indigo-600 dark:text-accent hover:underline"
+                                    >
+                                        Mark all read
+                                    </button>
+                                )}
+                                <Link
+                                    to="/notifications"
+                                    onClick={() => setShowNotifications(false)}
+                                    className="text-sm text-indigo-600 dark:text-accent hover:underline"
+                                >
+                                    View all
+                                </Link>
+                            </div>
+                        </div>
+
+                        {loadingNotifications ? (
+                            <div className="flex justify-center items-center p-8">
+                                <Loader2 className="animate-spin text-indigo-600 dark:text-accent" size={24} />
+                            </div>
+                        ) : notifications.length === 0 ? (
+                            <div className="p-6 text-center text-gray-500 dark:text-darktext/70">
+                                No notifications yet
+                            </div>
+                        ) : (
+                            <>
+                                <div className="divide-y divide-gray-200 dark:divide-darkborder">
+                                    {notifications.slice(0, 3).map((notification) => (
+                                        <div
+                                            key={notification._id}
+                                            className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-darkbg transition-colors cursor-pointer relative group ${!notification.isRead ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}
+                                            onClick={() => {
+                                                if (notification.blog) {
+                                                    navigate(`/blog/${notification.blog.blogId}`);
+                                                } else if (notification.sender) {
+                                                    navigate(`/@${notification.sender.username}`);
+                                                }
+                                                setShowNotifications(false);
+                                            }}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <img
+                                                    src={notification.sender?.profilePic || `https://api.dicebear.com/7.x/initials/svg?seed=${notification.sender?.name}&background=indigo`}
+                                                    alt={notification.sender?.name}
+                                                    className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-darkborder"
+                                                />
+                                                <div className="flex-1">
+                                                    <p className="text-sm text-gray-800 dark:text-darktext">
+                                                        <span className="font-medium">{notification.sender?.name}</span> {renderNotificationMessage(notification)}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 dark:text-darktext/70 mt-1">
+                                                        {formatTimeAgo(notification.createdAt)}
+                                                    </p>
+                                                    {notification.blog && (
+                                                        <p className="text-xs text-indigo-600 dark:text-accent mt-1 truncate">
+                                                            {notification.blog.title}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                {!notification.isRead ? (
+                                                    <button
+                                                        onClick={(e) => markSingleAsRead(notification._id, e)}
+                                                        className="opacity-0 group-hover:opacity-100 transition-opacity text-indigo-600 dark:text-accent p-1"
+                                                        title="Mark as read"
+                                                    >
+                                                        <CheckCircle className="h-4 w-4" />
+                                                    </button>
+                                                ) : (
+                                                    <Check className="h-4 w-4 text-green-500" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                )}
 
                 {/* Mobile search bar */}
                 {showSearchBar && (
@@ -275,6 +578,18 @@ const Navbar = () => {
                                         <Settings size={16} className="text-indigo-500 dark:text-accent" />
                                         <span>Settings</span>
                                     </Link>
+                                    {/* Dark mode toggle in mobile menu */}
+                                    <button
+                                        onClick={toggleDarkMode}
+                                        className="flex items-center gap-3 px-3 py-2.5 text-gray-700 dark:text-darktext rounded-lg hover:bg-gray-50 dark:hover:bg-darkbg w-full"
+                                    >
+                                        {darkMode ? (
+                                            <Sun size={16} className="text-indigo-500 dark:text-yellow-400" />
+                                        ) : (
+                                            <Moon size={16} className="text-indigo-500 dark:text-accent" />
+                                        )}
+                                        <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
+                                    </button>
                                     <button
                                         onClick={handleLogout}
                                         className="flex items-center gap-3 w-full px-3 py-2.5 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-darkbg mt-2"
@@ -290,6 +605,18 @@ const Navbar = () => {
                                 </>
                             ) : (
                                 <div className="space-y-2">
+                                    {/* Dark mode toggle in mobile menu for non-logged in users */}
+                                    <button
+                                        onClick={toggleDarkMode}
+                                        className="flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-darktext rounded-lg hover:bg-gray-50 dark:hover:bg-darkbg w-full"
+                                    >
+                                        {darkMode ? (
+                                            <Sun size={16} className="text-indigo-500 dark:text-yellow-400" />
+                                        ) : (
+                                            <Moon size={16} className="text-indigo-500 dark:text-accent" />
+                                        )}
+                                        <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
+                                    </button>
                                     <Link
                                         to="/signin"
                                         onClick={() => setMobileMenuOpen(false)}
@@ -317,5 +644,25 @@ const Navbar = () => {
         </>
     );
 };
+
+// Helper function to render notification message based on type
+function renderNotificationMessage(notification) {
+    switch (notification.type) {
+        case 'like':
+            return 'liked your post';
+        case 'comment':
+            return 'commented on your post';
+        case 'comment-like':
+            return 'liked your comment';
+        case 'follow':
+            return 'started following you';
+        case 'reply':
+            return 'replied to your comment';
+        case 'blog-update':
+            return 'updated their post';
+        default:
+            return notification.message || 'sent you a notification';
+    }
+}
 
 export default Navbar;

@@ -1,42 +1,55 @@
 const Blog = require("../models/blogSchema");
+const sendNotification = require("../utils/sendNotification");
 const Comment = require("../models/commentSchema");
 
 async function addComment(req, res) {
     try {
         const creator = req.user;
-        const { id } = req.params;
+        const { id: blogId } = req.params;
         const { comment } = req.body;
 
         if (!comment) {
-            return res.status(500).json({
-                message: "Please enter the comment",
+            return res.status(400).json({
+                message: "Please enter a comment",
             });
         }
 
-        const blog = await Blog.findById(id);
+        const blog = await Blog.findById(blogId).populate("creator", "_id name");
 
         if (!blog) {
-            return res.status(500).json({
-                message: "Blog is not found",
+            return res.status(404).json({
+                message: "Blog not found",
             });
         }
 
-        // create the comment
-
+        // Create the comment
         const newComment = await Comment.create({
             comment,
-            blog: id,
+            blog: blogId,
             user: creator,
-        }).then((comment) => {
-            return comment.populate({
+        }).then((c) =>
+            c.populate({
                 path: "user",
                 select: "name email username profilePic",
-            });
-        });
+            })
+        );
 
-        await Blog.findByIdAndUpdate(id, {
+        await Blog.findByIdAndUpdate(blogId, {
             $push: { comments: newComment._id },
         });
+
+        // Send notification if not commenting on own blog
+        if (creator.toString() !== blog.creator._id.toString()) {
+            await sendNotification({
+                req,
+                recipientId: blog.creator._id,
+                senderId: creator,
+                type: "comment",
+                blogId: blog._id,
+                commentId: newComment._id,
+                message: `commented on your blog "${blog.title}"`,
+            });
+        }
 
         return res.status(200).json({
             success: true,
@@ -44,11 +57,13 @@ async function addComment(req, res) {
             newComment,
         });
     } catch (error) {
+        console.error("Add comment error:", error);
         return res.status(500).json({
             message: error.message,
         });
     }
 }
+
 
 async function deleteComment(req, res) {
     try {
@@ -154,57 +169,81 @@ async function editComment(req, res) {
 async function likeComment(req, res) {
     try {
         const userId = req.user;
-        const { id } = req.params;
+        const { id: commentId } = req.params;
 
-        const comment = await Comment.findById(id);
+        const comment = await Comment.findById(commentId).populate("user", "_id name");
 
         if (!comment) {
-            return res.status(500).json({
-                message: "comment is not found",
+            return res.status(404).json({
+                message: "Comment not found",
             });
         }
 
-        if (!comment.likes.includes(userId)) {
-            await Comment.findByIdAndUpdate(id, { $push: { likes: userId } });
+        const isLiked = comment.likes.includes(userId);
+
+        if (!isLiked) {
+            await Comment.findByIdAndUpdate(commentId, { $push: { likes: userId } });
+
+            // Send notification if user is not liking their own comment
+            if (userId.toString() !== comment.user._id.toString()) {
+                await sendNotification({
+                    req,
+                    recipientId: comment.user._id,
+                    senderId: userId,
+                    type: "comment-like",
+                    commentId: comment._id,
+                    blogId: comment.blog, 
+                    message: "liked your comment",
+                });
+            }
+
             return res.status(200).json({
                 success: true,
-                message: "Comment Liked successfully",
+                message: "Comment liked successfully",
+                isLiked: true,
             });
         } else {
-            await Comment.findByIdAndUpdate(id, { $pull: { likes: userId } });
+            await Comment.findByIdAndUpdate(commentId, { $pull: { likes: userId } });
+
             return res.status(200).json({
                 success: true,
-                message: "Comment DisLiked successfully",
+                message: "Comment unliked successfully",
+                isLiked: false,
             });
         }
     } catch (error) {
+        console.error("likeComment error:", error);
         return res.status(500).json({
             message: error.message,
         });
     }
 }
 
+
 async function addNestedComment(req, res) {
     try {
         const userId = req.user;
-
         const { id: blogId, parentCommentId } = req.params;
-
         const { reply } = req.body;
 
-        const comment = await Comment.findById(parentCommentId);
+        if (!reply || reply.trim() === "") {
+            return res.status(400).json({
+                message: "Reply cannot be empty",
+            });
+        }
 
+        const parentComment = await Comment.findById(parentCommentId).populate("user", "_id name");
         const blog = await Blog.findById(blogId);
 
-        if (!comment) {
-            return res.status(500).json({
-                message: "parent comment is not found",
+        if (!parentComment) {
+            return res.status(404).json({
+                message: "Parent comment not found",
             });
         }
 
         if (!blog) {
-            return res.status(500).json({
-                message: "Blog is not found",
+            return res.status(404).json({
+                message: "Blog not found",
             });
         }
 
@@ -213,16 +252,29 @@ async function addNestedComment(req, res) {
             comment: reply,
             parentComment: parentCommentId,
             user: userId,
-        }).then((reply) => {
-            return reply.populate({
+        }).then((replyDoc) =>
+            replyDoc.populate({
                 path: "user",
                 select: "name email profilePic",
-            });
-        });
+            })
+        );
 
         await Comment.findByIdAndUpdate(parentCommentId, {
             $push: { replies: newReply._id },
         });
+
+        // Send notification to parent comment author (if not replying to self)
+        if (userId.toString() !== parentComment.user._id.toString()) {
+            await sendNotification({
+                req,
+                recipientId: parentComment.user._id,
+                senderId: userId,
+                type: "reply",
+                blogId,
+                commentId: parentCommentId,
+                message: "replied to your comment",
+            });
+        }
 
         return res.status(200).json({
             success: true,
@@ -230,11 +282,13 @@ async function addNestedComment(req, res) {
             newReply,
         });
     } catch (error) {
+        console.error("addNestedComment error:", error);
         return res.status(500).json({
             message: error.message,
         });
     }
 }
+
 
 module.exports = {
     addComment,

@@ -13,8 +13,7 @@ import AboutPage from "./components/AboutPage";
 import { useEffect } from "react";
 import { applyTheme } from "./utils/theme";
 import { ConfirmTransfer } from "./components/ConfirmTransfer";
-
-
+import Notifications from "./pages/Notifications";
 
 function App() {
   useEffect(() => {
@@ -46,6 +45,7 @@ function App() {
         <Route path="/confirm-transfer/:action/:token" element={<ConfirmTransfer />} />
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/setting" element={<Setting />} />
+        <Route path="/notifications" element={<Notifications />} />
 
         {/* Profile routes */}
         <Route path="/:username" element={<ProfilePage />} />

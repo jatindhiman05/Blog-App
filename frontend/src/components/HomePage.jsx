@@ -105,7 +105,7 @@ function HomePage() {
                                                                 src={
                                                                     blog?.creator?.profilePic
                                                                         ? blog.creator.profilePic
-                                                                        : `https://api.dicebear.com/7.x/initials/svg?seed=${blog.creator.name}`
+                                                                        : `https://api.dicebear.com/7.x/initials/svg?seed=${blog?.creator?.name}`
                                                                 }
                                                                 alt={blog?.creator?.name || 'Unknown Creator'}
                                                                 className="w-8 h-8 rounded-full object-cover  border-white dark:border-darkcard shadow-xs"
@@ -132,7 +132,7 @@ function HomePage() {
                                                     {/* Tags */}
                                                     {blog.tags?.length > 0 && (
                                                         <div className="flex flex-wrap gap-1.5 mb-3">
-                                                            {blog.tags.slice(0, 2).map((tag, index) => (
+                                                            {blog?.tags.slice(0, 2).map((tag, index) => (
                                                                 <span
                                                                     key={index}
                                                                     className="px-2 py-1 bg-indigo-50 dark:bg-darkbg text-indigo-700 dark:text-accent text-xs rounded-md"
@@ -151,21 +151,21 @@ function HomePage() {
                                                             ) : (
                                                                 <FaRegHeart className="text-sm" />
                                                             )}
-                                                            {blog.likes.length}
+                                                            {blog?.likes?.length}
                                                         </span>
 
                                                         <span className="flex items-center gap-1 text-gray-500 dark:text-darktext/70 hover:text-gray-700 dark:hover:text-darktext transition-colors">
                                                             <FaRegCommentDots className="text-sm" />
-                                                            {blog.comments.length}
+                                                            {blog?.comments?.length}
                                                         </span>
 
                                                         <span className="flex items-center gap-1 text-gray-500 dark:text-darktext/70 hover:text-gray-700 dark:hover:text-darktext transition-colors">
-                                                            {blog.totalSaves.includes(userId) ? (
+                                                            {blog?.totalSaves.includes(userId) ? (
                                                                 <FaBookmark className="text-indigo-500 dark:text-accent text-sm" />
                                                             ) : (
                                                                 <FaRegBookmark className="text-sm" />
                                                             )}
-                                                            {blog.totalSaves.length}
+                                                            {blog?.totalSaves?.length}
                                                         </span>
                                                     </div>
                                                 </div>

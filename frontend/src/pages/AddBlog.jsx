@@ -49,6 +49,7 @@ function AddBlog() {
 
         blogData.content.blocks.forEach((block) => {
             if (block.type === "image") {
+                console.log(block)
                 formData.append("images", block.data.file.image);
             }
         });
@@ -65,9 +66,11 @@ function AddBlog() {
                     },
                 }
             );
+            console.log(res)
             toast.success(res.data.message);
             navigate("/");
         } catch (error) {
+            console.log(error)
             toast.error(error.response.data.message);
         } finally {
             stopLoading();

@@ -47,7 +47,7 @@ app.io = io;
 app.connectedUsers = connectedUsers;
 
 app.use(express.json());
-app.use(cors({ origin: FRONTEND_URL }));
+app.use(cors({ origin: "*" }));
 
 app.get("/", (req, res) => {
     res.send("Server is running. Notifications are live.");

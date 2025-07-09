@@ -191,46 +191,42 @@ async function updateBlog(req, res) {
         const creator = req.user;
         const { id } = req.params;
         const { title, description } = req.body;
-        const draft = req.body.draft == "false" ? false : true;
+        const draft = req.body.draft === "false" ? false : true;
 
         const content = JSON.parse(req.body.content);
         const tags = JSON.parse(req.body.tags);
         const existingImages = JSON.parse(req.body.existingImages);
 
         const blog = await Blog.findOne({ blogId: id });
-
         if (!blog) {
-            return res.status(404).json({
-                message: "Blog not found",
-            });
+            return res.status(404).json({ message: "Blog not found" });
         }
 
         if (creator.toString() !== blog.creator.toString()) {
-            return res.status(403).json({
-                message: "You are not authorized to update this blog",
-            });
+            return res.status(403).json({ message: "You are not authorized to update this blog" });
         }
 
         // Identify images to delete
         let imagesToDelete = blog.content.blocks
-            .filter((block) => block.type == "image")
-            .filter(
-                (block) => !existingImages.find(({ url }) => url == block.data.file.url)
-            )
-            .map((block) => block.data.file.imageId);
+            .filter(block => block.type === "image")
+            .filter(block => !existingImages.find(({ url }) => url === block.data.file.url))
+            .map(block => block.data.file.imageId);
 
         // Upload new embedded images
         if (req.files.images) {
             let imageIndex = 0;
-
             for (let i = 0; i < content.blocks.length; i++) {
                 const block = content.blocks[i];
                 if (block.type === "image" && block.data.file.image) {
-                    const { secure_url, public_id } = await uploadImage(
-                        `data:image/jpeg;base64,${req.files.images[
-                            imageIndex
-                        ].buffer.toString("base64")}`
+                    const uploadResult = await uploadImage(
+                        `data:image/jpeg;base64,${req.files.images[imageIndex].buffer.toString("base64")}`
                     );
+
+                    if (!uploadResult) {
+                        throw new Error("Image upload failed");
+                    }
+
+                    const { secure_url, public_id } = uploadResult;
 
                     block.data.file = {
                         url: secure_url,
@@ -245,9 +241,16 @@ async function updateBlog(req, res) {
         // Replace cover image if new one provided
         if (req?.files?.image) {
             await deleteImagefromCloudinary(blog.imageId);
-            const { secure_url, public_id } = await uploadImage(
+
+            const uploadResult = await uploadImage(
                 `data:image/jpeg;base64,${req.files.image[0].buffer.toString("base64")}`
             );
+
+            if (!uploadResult) {
+                throw new Error("Cover image upload failed");
+            }
+
+            const { secure_url, public_id } = uploadResult;
             blog.image = secure_url;
             blog.imageId = public_id;
         }
@@ -268,7 +271,7 @@ async function updateBlog(req, res) {
             });
         }
 
-        // Notify followers if blog is updated and published
+        // Notify followers about update
         const user = await User.findById(creator).select("followers name");
         const followers = user.followers || [];
 
@@ -290,11 +293,10 @@ async function updateBlog(req, res) {
         });
     } catch (error) {
         console.log("Update Blog Error:", error);
-        return res.status(500).json({
-            message: error.message,
-        });
+        return res.status(500).json({ message: error.message });
     }
 }
+
 
 
 async function deleteBlog(req, res) {

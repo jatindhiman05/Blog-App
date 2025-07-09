@@ -3,6 +3,12 @@ import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../utils/userSilce";
 import {
+    setNotification,
+    markAllAsRead as markAllAsReadAction,
+    markAsRead as markAsReadAction,
+    addNotification
+} from "../utils/notificationsSlice";
+import {
     Search,
     PenSquare,
     User,
@@ -17,15 +23,21 @@ import {
     Check,
     CheckCircle,
     Moon,
-    Sun
+    Sun,
+    Heart,
+    MessageSquare,
+    UserPlus,
+    Edit
 } from "lucide-react";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 const Navbar = () => {
     const { token, name, profilePic, username, id: userId } = useSelector(
         (state) => state.user
     );
+    const { notifications, unreadCount } = useSelector((state) => state.notifications);
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const popupRef = useRef(null);
@@ -37,39 +49,9 @@ const Navbar = () => {
     const [showSearchBar, setShowSearchBar] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
     const [socket, setSocket] = useState(null);
     const [loadingNotifications, setLoadingNotifications] = useState(false);
     const [darkMode, setDarkMode] = useState(localStorage.getItem("theme") === "dark");
-
-    // Initialize socket connection
-    useEffect(() => {
-        if (token && userId) {
-            const newSocket = io(import.meta.env.VITE_BACKEND_SOCKET_URL, {
-                auth: { token },
-                transports: ["websocket"],
-            });
-            console.log(newSocket)
-            setSocket(newSocket);
-
-            return () => newSocket.disconnect();
-        }
-    }, [token, userId]);
-
-    // Toggle dark mode
-    const toggleDarkMode = () => {
-        const newDarkMode = !darkMode;
-        setDarkMode(newDarkMode);
-        localStorage.setItem("theme", newDarkMode ? "dark" : "light");
-
-        // Apply the theme change
-        if (newDarkMode) {
-            document.documentElement.classList.add("dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-        }
-    };
 
     // Initialize theme on component mount
     useEffect(() => {
@@ -80,50 +62,82 @@ const Navbar = () => {
         }
     }, []);
 
+    // Toggle dark mode
+    const toggleDarkMode = () => {
+        const newDarkMode = !darkMode;
+        setDarkMode(newDarkMode);
+        localStorage.setItem("theme", newDarkMode ? "dark" : "light");
+
+        if (newDarkMode) {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
+    };
+
     // Socket event listeners
     useEffect(() => {
-        if (!socket) return;
+        if (!token || !userId) return;
 
-        socket.on("connect", () => {
-            console.log("Connected to socket");
-            socket.emit("register", userId);
+        const newSocket = io(import.meta.env.VITE_BACKEND_SOCKET_URL, {
+            auth: { token },
+            transports: ["websocket"],
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
         });
 
-        socket.on("newNotification", (notification) => {
-            setNotifications(prev => [notification, ...prev]);
-            setUnreadCount(prev => prev + 1);
+        newSocket.on("connect", () => {
+            console.log("Socket connected:", newSocket.id);
+            // Register the user with their ID
+            newSocket.emit("register", userId);
         });
 
-        socket.on("unreadCountUpdate", (count) => {
-            setUnreadCount(count);
+        newSocket.on("disconnect", () => {
+            console.log("Socket disconnected");
         });
+
+        newSocket.on("connect_error", (err) => {
+            console.error("Socket connection error:", err);
+        });
+
+        newSocket.on("newNotification", (notification) => {
+            console.log("New notification received:", notification);
+            dispatch(addNotification(notification));
+            toast.success("New notification received");
+        });
+
+        setSocket(newSocket);
 
         return () => {
-            socket.off("connect");
-            socket.off("newNotification");
-            socket.off("unreadCountUpdate");
+            newSocket.off("connect");
+            newSocket.off("disconnect");
+            newSocket.off("connect_error");
+            newSocket.off("newNotification");
+            newSocket.disconnect();
         };
-    }, [socket, userId]);
+    }, [token, userId, dispatch]);
 
-    // Fetch initial notifications
     useEffect(() => {
         if (!token) return;
 
         const fetchNotifications = async () => {
             try {
                 setLoadingNotifications(true);
-                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/notifications?limit=4`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                const data = await response.json();
-                if (data.success) {
-                    setNotifications(data.notifications);
-                    setUnreadCount(data.unreadCount);
-                }
+                const response = await axios.get(
+                    `${import.meta.env.VITE_BACKEND_URL}/notifications?limit=4`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+                dispatch(setNotification({
+                    notifications: response.data.notifications,
+                    unreadCount: response.data.unreadCount
+                }));
             } catch (error) {
-                toast.error(error.response?.data?.message)
+                toast.error(error.response?.data?.message || "Failed to load notifications");
                 console.error("Error fetching notifications:", error);
             } finally {
                 setLoadingNotifications(false);
@@ -131,7 +145,7 @@ const Navbar = () => {
         };
 
         fetchNotifications();
-    }, [token]);
+    }, [token, dispatch]);
 
     const handleLogout = () => {
         setIsLoggingOut(true);
@@ -147,78 +161,40 @@ const Navbar = () => {
 
     const markAllAsRead = async () => {
         try {
-            await fetch(`${import.meta.env.VITE_BACKEND_URL}/notifications/mark-read`, {
-                method: "PATCH",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            setUnreadCount(0);
-            setNotifications(prev =>
-                prev.map(n => ({ ...n, isRead: true }))
+            await axios.patch(
+                `${import.meta.env.VITE_BACKEND_URL}/notifications/mark-read`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             );
-            toast.success('All are Marked Read Successfully')
+            dispatch(markAllAsReadAction());
+            toast.success("All notifications marked as read");
         } catch (error) {
-            toast.error(error.response?.data?.message)
+            toast.error(error.response?.data?.message || "Failed to mark notifications as read");
             console.error("Error marking notifications as read:", error);
         }
     };
 
     const markSingleAsRead = async (notificationId, e) => {
-        e.stopPropagation(); // Prevent triggering the parent onClick
+        e.stopPropagation();
         try {
-            await fetch(`${import.meta.env.VITE_BACKEND_URL}/notifications/${notificationId}/read`, {
-                method: "PATCH",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            setUnreadCount(prev => Math.max(0, prev - 1));
-            setNotifications(prev =>
-                prev.map(n =>
-                    n._id === notificationId ? { ...n, isRead: true } : n
-                )
+            await axios.patch(
+                `${import.meta.env.VITE_BACKEND_URL}/notifications/${notificationId}/read`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             );
-            toast.success('Marked Read Successfully')
+            dispatch(markAsReadAction(notificationId));
         } catch (error) {
-            toast.error(error.response?.data?.message)
             console.error("Error marking notification as read:", error);
         }
     };
-
-    useEffect(() => {
-        if (window.location.pathname !== "/search") {
-            setSearchQuery("");
-        }
-    }, [window.location.pathname]);
-
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (popupRef.current && !popupRef.current.contains(event.target)) {
-                const profileButton = document.querySelector('.profile-button');
-                if (!profileButton || !profileButton.contains(event.target)) {
-                    setShowPopup(false);
-                }
-            }
-
-            if (notificationRef.current && !notificationRef.current.contains(event.target)) {
-                const notificationButton = document.querySelector('.notification-button');
-                if (!notificationButton || !notificationButton.contains(event.target)) {
-                    setShowNotifications(false);
-                }
-            }
-        }
-
-        if (showPopup || showNotifications) {
-            document.addEventListener('mousedown', handleClickOutside);
-        } else {
-            document.removeEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [showPopup, showNotifications]);
 
     const formatTimeAgo = (dateString) => {
         const date = new Date(dateString);
@@ -253,6 +229,53 @@ const Navbar = () => {
     ) : (
         <Bell className="h-5 w-5 text-gray-600 dark:text-darktext/80" />
     );
+
+    const renderNotificationMessage = (notification) => {
+        switch (notification.type) {
+            case 'like':
+                return 'liked your post';
+            case 'comment':
+                return 'commented on your post';
+            case 'comment-like':
+                return 'liked your comment';
+            case 'follow':
+                return 'started following you';
+            case 'reply':
+                return 'replied to your comment';
+            case 'blog-update':
+                return 'updated their post';
+            default:
+                return notification.message || 'sent you a notification';
+        }
+    };
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (popupRef.current && !popupRef.current.contains(event.target)) {
+                const profileButton = document.querySelector('.profile-button');
+                if (!profileButton || !profileButton.contains(event.target)) {
+                    setShowPopup(false);
+                }
+            }
+
+            if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+                const notificationButton = document.querySelector('.notification-button');
+                if (!notificationButton || !notificationButton.contains(event.target)) {
+                    setShowNotifications(false);
+                }
+            }
+        }
+
+        if (showPopup || showNotifications) {
+            document.addEventListener('mousedown', handleClickOutside);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showPopup, showNotifications]);
 
     return (
         <>
@@ -419,6 +442,8 @@ const Navbar = () => {
                         )}
                     </div>
                 </div>
+
+                {/* Notification dropdown */}
                 {showNotifications && (
                     <div
                         className="absolute right-4 md:right-8 top-16 w-80 md:w-96 bg-white dark:bg-darkcard rounded-lg shadow-lg border border-gray-200 dark:border-darkborder overflow-hidden z-50 max-h-[80vh] overflow-y-auto"
@@ -454,56 +479,55 @@ const Navbar = () => {
                                 No notifications yet
                             </div>
                         ) : (
-                            <>
-                                <div className="divide-y divide-gray-200 dark:divide-darkborder">
-                                    {notifications.slice(0, 3).map((notification) => (
-                                        <div
-                                            key={notification._id}
-                                            className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-darkbg transition-colors cursor-pointer relative group ${!notification.isRead ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}
-                                            onClick={() => {
-                                                if (notification.blog) {
-                                                    navigate(`/blog/${notification.blog.blogId}`);
-                                                } else if (notification.sender) {
-                                                    navigate(`/@${notification.sender.username}`);
-                                                }
-                                                setShowNotifications(false);
-                                            }}
-                                        >
-                                            <div className="flex items-start gap-3">
-                                                <img
-                                                    src={notification.sender?.profilePic || `https://api.dicebear.com/7.x/initials/svg?seed=${notification.sender?.name}&background=indigo`}
-                                                    alt={notification.sender?.name}
-                                                    className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-darkborder"
-                                                />
-                                                <div className="flex-1">
-                                                    <p className="text-sm text-gray-800 dark:text-darktext">
-                                                        <span className="font-medium">{notification.sender?.name}</span> {renderNotificationMessage(notification)}
+                            <div className="divide-y divide-gray-200 dark:divide-darkborder">
+                                {notifications.slice(0, 3).map((notification) => (
+                                    <div
+                                        key={notification._id}
+                                        className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-darkbg transition-colors cursor-pointer relative group ${!notification.isRead ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}
+                                        onClick={() => {
+                                            if (!notification.isRead) {
+                                                markSingleAsRead(notification._id);
+                                            }
+                                            if (notification.blog) {
+                                                navigate(`/blog/${notification.blog.blogId}`);
+                                            } else if (notification.sender) {
+                                                navigate(`/@${notification.sender.username}`);
+                                            }
+                                            setShowNotifications(false);
+                                        }}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <img
+                                                src={notification.sender?.profilePic || `https://api.dicebear.com/7.x/initials/svg?seed=${notification.sender?.name}&background=indigo`}
+                                                alt={notification.sender?.name}
+                                                className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-darkborder"
+                                            />
+                                            <div className="flex-1">
+                                                <p className="text-sm text-gray-800 dark:text-darktext">
+                                                    <span className="font-medium">{notification.sender?.name}</span> {renderNotificationMessage(notification)}
+                                                </p>
+                                                <p className="text-xs text-gray-500 dark:text-darktext/70 mt-1">
+                                                    {formatTimeAgo(notification.createdAt)}
+                                                </p>
+                                                {notification.blog && (
+                                                    <p className="text-xs text-indigo-600 dark:text-accent mt-1 truncate">
+                                                        {notification.blog.title}
                                                     </p>
-                                                    <p className="text-xs text-gray-500 dark:text-darktext/70 mt-1">
-                                                        {formatTimeAgo(notification.createdAt)}
-                                                    </p>
-                                                    {notification.blog && (
-                                                        <p className="text-xs text-indigo-600 dark:text-accent mt-1 truncate">
-                                                            {notification.blog.title}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                                {!notification.isRead ? (
-                                                    <button
-                                                        onClick={(e) => markSingleAsRead(notification._id, e)}
-                                                        className="opacity-0 group-hover:opacity-100 transition-opacity text-indigo-600 dark:text-accent p-1"
-                                                        title="Mark as read"
-                                                    >
-                                                        <CheckCircle className="h-4 w-4" />
-                                                    </button>
-                                                ) : (
-                                                    <Check className="h-4 w-4 text-green-500" />
                                                 )}
                                             </div>
+                                            {!notification.isRead && (
+                                                <button
+                                                    onClick={(e) => markSingleAsRead(notification._id, e)}
+                                                    className="opacity-0 group-hover:opacity-100 transition-opacity text-indigo-600 dark:text-accent p-1"
+                                                    title="Mark as read"
+                                                >
+                                                    <CheckCircle className="h-4 w-4" />
+                                                </button>
+                                            )}
                                         </div>
-                                    ))}
-                                </div>
-                            </>
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </div>
                 )}
@@ -644,25 +668,5 @@ const Navbar = () => {
         </>
     );
 };
-
-// Helper function to render notification message based on type
-function renderNotificationMessage(notification) {
-    switch (notification.type) {
-        case 'like':
-            return 'liked your post';
-        case 'comment':
-            return 'commented on your post';
-        case 'comment-like':
-            return 'liked your comment';
-        case 'follow':
-            return 'started following you';
-        case 'reply':
-            return 'replied to your comment';
-        case 'blog-update':
-            return 'updated their post';
-        default:
-            return notification.message || 'sent you a notification';
-    }
-}
 
 export default Navbar;

@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    setNotification,
+    markAllAsRead as markAllAsReadAction,
+    markAsRead as markAsReadAction,
+    deleteNotification
+} from "../utils/notificationsSlice";
 import {
     Bell,
     BellOff,
@@ -24,40 +30,45 @@ import { smartFormatDate } from "../utils/formatDate";
 
 function Notifications() {
     const { token } = useSelector((state) => state.user);
+    const { notifications, unreadCount } = useSelector((state) => state.notifications);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
-    const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("all");
     const [isDeleting, setIsDeleting] = useState(false);
     const [isMarkingRead, setIsMarkingRead] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [clearAllModalOpen, setClearAllModalOpen] = useState(false);
     const [selectedNotification, setSelectedNotification] = useState(null);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     useEffect(() => {
-        if (!token) return;
-
         const fetchNotifications = async () => {
             try {
-                setLoading(true);
-                const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/notifications`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                setNotifications(response.data.notifications);
-                
+                const response = await axios.get(
+                    `${import.meta.env.VITE_BACKEND_URL}/notifications`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+                dispatch(setNotification({
+                    notifications: response.data.notifications,
+                    unreadCount: response.data.unreadCount
+                }));
             } catch (error) {
-                toast.error(error.response?.data?.message || "Failed to fetch notifications");
+                console.error("Error fetching notifications:", error);
+                toast.error("Failed to load notifications");
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchNotifications();
-    }, [token]);
+        if (token) {
+            fetchNotifications();
+        }
+    }, [token, dispatch]);
 
     const filteredNotifications = notifications.filter(notification => {
         if (activeTab === "all") return true;
@@ -77,7 +88,7 @@ function Notifications() {
                     },
                 }
             );
-            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+            dispatch(markAllAsReadAction());
             toast.success("All notifications marked as read");
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to mark notifications as read");
@@ -98,9 +109,7 @@ function Notifications() {
                     },
                 }
             );
-            setNotifications(prev =>
-                prev.map(n => n._id === notificationId ? { ...n, isRead: true } : n)
-            );
+            dispatch(markAsReadAction(notificationId));
         } catch (error) {
             console.error("Error marking notification as read:", error);
         }
@@ -119,7 +128,7 @@ function Notifications() {
                     },
                 }
             );
-            setNotifications(prev => prev.filter(n => n._id !== selectedNotification._id));
+            dispatch(deleteNotification(selectedNotification._id));
             toast.success("Notification deleted");
             setDeleteModalOpen(false);
         } catch (error) {
@@ -127,27 +136,6 @@ function Notifications() {
         } finally {
             setIsDeleting(false);
             setSelectedNotification(null);
-        }
-    };
-
-    const clearAllNotifications = async () => {
-        try {
-            setIsDeleting(true);
-            await axios.delete(
-                `${import.meta.env.VITE_BACKEND_URL}/notifications`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            setNotifications([]);
-            toast.success("All notifications cleared");
-            setClearAllModalOpen(false);
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Failed to clear notifications");
-        } finally {
-            setIsDeleting(false);
         }
     };
 
@@ -195,7 +183,7 @@ function Notifications() {
 
         const currentAction = actionMap[notification.type] || {
             text: notification.message || 'sent you a notification',
-            icon: <Bell className="w-4 h-4 inline mr-1 " />
+            icon: <Bell className="w-4 h-4 inline mr-1" />
         };
 
         return (
@@ -230,7 +218,7 @@ function Notifications() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-darkbg py-6 px-4 sm:px-6">
-            {/* Delete Single Notification Modal */}
+            {/* Delete Notification Modal */}
             <Modal
                 isOpen={deleteModalOpen}
                 onClose={() => {
@@ -256,29 +244,6 @@ function Notifications() {
                 </div>
             </Modal>
 
-            {/* Clear All Notifications Modal */}
-            <Modal
-                isOpen={clearAllModalOpen}
-                onClose={() => setClearAllModalOpen(false)}
-                title="Clear All Notifications"
-                maxWidth="max-w-md"
-                actionButton={
-                    <button
-                        onClick={clearAllNotifications}
-                        disabled={isDeleting}
-                        className={`px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors ${isDeleting ? "opacity-70 cursor-not-allowed" : ""}`}
-                    >
-                        {isDeleting ? "Clearing..." : "Clear All"}
-                    </button>
-                }
-            >
-                <div className="space-y-4">
-                    <p className="text-gray-700 dark:text-darktext">
-                        Are you sure you want to clear all notifications? This action cannot be undone.
-                    </p>
-                </div>
-            </Modal>
-
             <div className="max-w-4xl mx-auto">
                 <div className="flex items-center justify-between mb-6">
                     <button
@@ -288,7 +253,7 @@ function Notifications() {
                         <ArrowLeft className="w-5 h-5" />
                         <span className="hidden sm:inline">Back</span>
                     </button>
-                    
+
                     <button
                         onClick={() => setShowMobileMenu(!showMobileMenu)}
                         className="sm:hidden p-2 rounded-lg bg-white dark:bg-darkcard border border-gray-200 dark:border-darkborder"
@@ -304,18 +269,17 @@ function Notifications() {
                                 <Bell className="text-indigo-600 dark:text-accent" />
                                 Notifications
                             </h1>
-                            
+
                             {/* Mobile menu */}
                             {showMobileMenu && (
                                 <div className="sm:hidden flex flex-col gap-2">
                                     <button
                                         onClick={markAllAsRead}
-                                        disabled={isMarkingRead || notifications.filter(n => !n.isRead).length === 0}
-                                        className={`flex items-center justify-center gap-2 px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-darkborder hover:bg-gray-50 dark:hover:bg-darkbg transition-colors ${
-                                            isMarkingRead || notifications.filter(n => !n.isRead).length === 0
+                                        disabled={isMarkingRead || unreadCount === 0}
+                                        className={`flex items-center justify-center gap-2 px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-darkborder hover:bg-gray-50 dark:hover:bg-darkbg transition-colors ${isMarkingRead || unreadCount === 0
                                                 ? "opacity-50 cursor-not-allowed"
                                                 : ""
-                                        }`}
+                                            }`}
                                     >
                                         {isMarkingRead ? (
                                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -324,52 +288,25 @@ function Notifications() {
                                         )}
                                         <span className="dark:text-darktext">Mark all read</span>
                                     </button>
-
-                                    <button
-                                        onClick={() => setClearAllModalOpen(true)}
-                                        disabled={isDeleting || notifications.length === 0}
-                                        className={`flex items-center justify-center gap-2 px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-darkborder hover:bg-gray-50 dark:hover:bg-darkbg transition-colors ${
-                                            isDeleting || notifications.length === 0
-                                                ? "opacity-50 cursor-not-allowed"
-                                                : ""
-                                        }`}
-                                    >
-                                        <Trash2 className="w-4 h-4 dark:text-darktext" />
-                                        <span className="dark:text-darktext">Clear all</span>
-                                    </button>
                                 </div>
                             )}
-                            
+
                             {/* Desktop buttons */}
                             <div className="hidden sm:flex gap-2">
                                 <button
                                     onClick={markAllAsRead}
-                                    disabled={isMarkingRead || notifications.filter(n => !n.isRead).length === 0}
-                                    className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-darkborder hover:bg-gray-50 dark:hover:bg-darkbg transition-colors ${
-                                        isMarkingRead || notifications.filter(n => !n.isRead).length === 0
+                                    disabled={isMarkingRead || unreadCount === 0}
+                                    className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-darkborder hover:bg-gray-50 dark:hover:bg-darkbg transition-colors ${isMarkingRead || unreadCount === 0
                                             ? "opacity-50 cursor-not-allowed"
                                             : ""
-                                    }`}
+                                        }`}
                                 >
                                     {isMarkingRead ? (
                                         <Loader2 className="w-4 h-4 animate-spin dark:text-darktext" />
                                     ) : (
-                                            <Check className="w-4 h-4 dark:text-darktext" />
+                                        <Check className="w-4 h-4 dark:text-darktext" />
                                     )}
                                     <span className="dark:text-darktext">Mark all read</span>
-                                </button>
-
-                                <button
-                                    onClick={() => setClearAllModalOpen(true)}
-                                    disabled={isDeleting || notifications.length === 0}
-                                    className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-darkborder hover:bg-gray-50 dark:hover:bg-darkbg transition-colors ${
-                                        isDeleting || notifications.length === 0
-                                            ? "opacity-50 cursor-not-allowed"
-                                            : ""
-                                    }`}
-                                >
-                                    <Trash2 className="w-4 h-4 dark:text-darktext" />
-                                    <span className="dark:text-darktext">Clear all</span>
                                 </button>
                             </div>
                         </div>
@@ -401,11 +338,10 @@ function Notifications() {
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
-                                        className={`whitespace-nowrap px-4 py-2 text-sm rounded-full ${
-                                            activeTab === tab
+                                        className={`whitespace-nowrap px-4 py-2 text-sm rounded-full ${activeTab === tab
                                                 ? "bg-indigo-600 text-white dark:bg-accent"
                                                 : "bg-gray-100 text-gray-700 dark:bg-darkbg dark:text-darktext hover:bg-gray-200 dark:hover:bg-gray-800"
-                                        }`}
+                                            }`}
                                     >
                                         {tab === 'all' && 'All'}
                                         {tab === 'unread' && 'Unread'}
@@ -439,9 +375,8 @@ function Notifications() {
                             filteredNotifications.map((notification) => (
                                 <div
                                     key={notification._id}
-                                    className={`p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-darkbg transition-colors cursor-pointer ${
-                                        !notification.isRead ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''
-                                    }`}
+                                    className={`p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-darkbg transition-colors cursor-pointer ${!notification.isRead ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''
+                                        }`}
                                     onClick={() => {
                                         if (!notification.isRead) {
                                             markSingleAsRead(notification._id);

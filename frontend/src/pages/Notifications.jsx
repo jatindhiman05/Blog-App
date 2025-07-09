@@ -39,6 +39,7 @@ function Notifications() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isMarkingRead, setIsMarkingRead] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [clearAllModalOpen, setClearAllModalOpen] = useState(false);
     const [selectedNotification, setSelectedNotification] = useState(null);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
 
@@ -94,6 +95,27 @@ function Notifications() {
             toast.error(error.response?.data?.message || "Failed to mark notifications as read");
         } finally {
             setIsMarkingRead(false);
+        }
+    };
+
+    const clearAllNotifications = async () => {
+        try {
+            setIsDeleting(true);
+            await axios.delete(
+                `${import.meta.env.VITE_BACKEND_URL}/notifications`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            dispatch(setNotification({ notifications: [], unreadCount: 0 }));
+            toast.success("All notifications cleared");
+            setClearAllModalOpen(false);
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to clear notifications");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -244,6 +266,29 @@ function Notifications() {
                 </div>
             </Modal>
 
+            {/* Clear All Notifications Modal */}
+            <Modal
+                isOpen={clearAllModalOpen}
+                onClose={() => setClearAllModalOpen(false)}
+                title="Clear All Notifications"
+                maxWidth="max-w-md"
+                actionButton={
+                    <button
+                        onClick={clearAllNotifications}
+                        disabled={isDeleting}
+                        className={`px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors ${isDeleting ? "opacity-70 cursor-not-allowed" : ""}`}
+                    >
+                        {isDeleting ? "Clearing..." : "Clear All"}
+                    </button>
+                }
+            >
+                <div className="space-y-4">
+                    <p className="text-gray-700 dark:text-darktext">
+                        Are you sure you want to delete all notifications? This action cannot be undone.
+                    </p>
+                </div>
+            </Modal>
+
             <div className="max-w-4xl mx-auto">
                 <div className="flex items-center justify-between mb-6">
                     <button
@@ -288,6 +333,17 @@ function Notifications() {
                                         )}
                                         <span className="dark:text-darktext">Mark all read</span>
                                     </button>
+                                    <button
+                                        onClick={() => setClearAllModalOpen(true)}
+                                        disabled={notifications.length === 0}
+                                        className={`flex items-center justify-center gap-2 px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-darkborder hover:bg-gray-50 dark:hover:bg-darkbg transition-colors ${notifications.length === 0
+                                                ? "opacity-50 cursor-not-allowed"
+                                                : ""
+                                            }`}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        <span className="dark:text-darktext">Clear All</span>
+                                    </button>
                                 </div>
                             )}
 
@@ -307,6 +363,17 @@ function Notifications() {
                                         <Check className="w-4 h-4 dark:text-darktext" />
                                     )}
                                     <span className="dark:text-darktext">Mark all read</span>
+                                </button>
+                                <button
+                                    onClick={() => setClearAllModalOpen(true)}
+                                    disabled={notifications.length === 0}
+                                    className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-darkborder hover:bg-gray-50 dark:hover:bg-darkbg transition-colors ${notifications.length === 0
+                                            ? "opacity-50 cursor-not-allowed"
+                                            : ""
+                                        }`}
+                                >
+                                    <Trash2 className="w-4 h-4 dark:text-darktext" />
+                                    <span className="dark:text-darktext">Clear All</span>
                                 </button>
                             </div>
                         </div>

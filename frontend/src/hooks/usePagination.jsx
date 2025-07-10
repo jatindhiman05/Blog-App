@@ -9,29 +9,29 @@ function usePagination(path, queryParams = {}, limit = 1, page = 1) {
     const [blogs, setBlogs] = useState([]);
     const navigate = useNavigate();
     const [isLoading, startLoading, stopLoading] = useLoader();
+
     useEffect(() => {
-        async function fetchSeachBlogs() {
+        async function fetchSearchBlogs() {
             try {
                 startLoading();
                 const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/${path}`, {
                     params: { ...queryParams, limit, page },
                 });
-                console.log(res);
-                const blogList = Array.isArray(res?.data?.blogs) ? res.data.blogs : [];
-                setBlogs((prev) => [...prev, ...blogList]);
 
+                const blogList = Array.isArray(res?.data?.blogs) ? res.data.blogs : [];
+                setBlogs((prev) => (page === 1 ? blogList : [...prev, ...blogList]));
                 setHasMore(Boolean(res?.data?.hasMore));
             } catch (error) {
-                navigate(-1);
-                setBlogs([]);
+                if (page === 1) navigate(-1);
                 toast.error(error?.response?.data?.message || "Something went wrong");
                 setHasMore(false);
             } finally {
                 stopLoading();
             }
         }
-        fetchSeachBlogs();
-    }, []);
+
+        fetchSearchBlogs();
+    }, [path, JSON.stringify(queryParams), page]);
 
     return { blogs, hasMore, isLoading };
 }
